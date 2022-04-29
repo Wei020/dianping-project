@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import static com.dppojo.utils.RedisConstants.*;
 import static com.dppojo.utils.SystemConstants.USER_NICK_NAME_PREFIX;
@@ -35,6 +36,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    private String tokenKey;
 
     @Override
     public Result sendCode(String phone, HttpSession session) {
@@ -78,7 +81,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
 //        7、保存用户信息到redis中
 //        7.1、随机生成token，作为登录令牌
-        String tokenKey = UUID.randomUUID().toString(true);
+        tokenKey = UUID.randomUUID().toString(true);
 //        7.2、将user对象转为hash存储
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
 //        session.setAttribute("user", BeanUtil.copyProperties(user, UserDTO.class));
@@ -135,6 +138,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             num >>>= 1;
         }
         return Result.ok(count);
+    }
+
+    @Override
+    public Result logout() {
+        if(tokenKey == null || tokenKey.isEmpty())
+            return Result.fail("未登录无法退出！");
+        Boolean isSuccess = stringRedisTemplate.delete(LOGIN_USER_KEY + tokenKey);
+        if(!isSuccess)
+            return Result.fail("退出失败！");
+        UserHolder.removeUser();
+        return Result.ok();
     }
 
     private User createUserWithPhone(String phone) {
