@@ -31,14 +31,7 @@ import java.util.stream.Collectors;
 import static com.dppojo.utils.RedisConstants.BLOG_LIKED_KEY;
 import static com.dppojo.utils.RedisConstants.FEED_KEY;
 
-/**
- * <p>
- *  服务实现类
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
- */
+
 @Service
 public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IBlogService {
 

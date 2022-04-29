@@ -13,30 +13,23 @@ import com.dppojo.mapper.UserMapper;
 import com.dppojo.service.IUserService;
 import com.dppojo.utils.RegexUtils;
 import com.dppojo.utils.UserHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpSession;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import static com.dppojo.utils.RedisConstants.*;
 import static com.dppojo.utils.SystemConstants.USER_NICK_NAME_PREFIX;
 
-/**
- * <p>
- * 服务实现类
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
- */
+
+@Slf4j
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
 
@@ -56,7 +49,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 //        session.setAttribute("code",code);
         stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
 //        5、发送验证码
-        log.debug("发送短信验证码成功，验证码:"+code);
+        log.info("发送短信验证码成功，验证码:"+code);
         return Result.ok();
     }
 

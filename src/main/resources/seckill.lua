@@ -25,6 +25,4 @@ end
 --可以执行下单
 redis.call('incrby', stockKey, -1)
 redis.call('sadd', orderKey, userId)
---发送消息
-redis.call('xadd', 'stream.orders', '*', 'userId', userId, 'voucherId', voucherId, 'id', orderId)
 return 0

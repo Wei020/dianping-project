@@ -2,7 +2,7 @@ server:
   port: 8081
 spring:
   application:
-    name: hmdp
+    name: dppojo
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/dp_pojo?useSSL=false&serverTimezone=UTC
@@ -20,6 +20,12 @@ spring:
         time-between-eviction-runs: 10s
   jackson:
     default-property-inclusion: non_null # JSON处理时忽略非空字段
+  rabbitmq:
+    host: 192.168.10.100
+    port: 5672
+    username: itcast
+    password: 123321
+    virtual-host: /
 mybatis-plus:
   type-aliases-package: com.hmdp.entity # 别名扫描包
 logging:

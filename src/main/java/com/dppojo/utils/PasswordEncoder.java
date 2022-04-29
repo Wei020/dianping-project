@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 public class PasswordEncoder {
 
     public static String encode(String password) {
-        // 生成盐
+        // 生成验证码
         String salt = RandomUtil.randomString(20);
         // 加密
         return encode(password,salt);
