@@ -64,7 +64,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             //        2、不符合返回错误信息
             return Result.fail("手机号格式错误!");
         }
-//        2、校验验证码
+//        判断是否密码登录
+        String pwd = loginForm.getPassword();
+        if(pwd == null || pwd.isEmpty()){
+            return LoginByCode(loginForm, phone);
+        }else{
+            User user = query().eq("phone", phone).eq("password", pwd).one();
+            if(user == null)
+                return Result.fail("密码错误！");
+            else{
+                saveUserMsg(user);
+                return Result.ok(tokenKey);
+            }
+
+        }
+    }
+
+    private Result LoginByCode(LoginFormDTO loginForm, String phone) {
+        //        2、校验验证码
 //        Object cacheCode = session.getAttribute("code");
         Object cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
         String code = loginForm.getCode();
@@ -79,7 +96,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             //        6、不存在，创建新用户并保存
             user = createUserWithPhone(phone);
         }
-//        7、保存用户信息到redis中
+//        保存用户信息
+        saveUserMsg(user);
+        return Result.ok(tokenKey);
+    }
+
+    private void saveUserMsg(User user) {
+        //        7、保存用户信息到redis中
 //        7.1、随机生成token，作为登录令牌
         tokenKey = UUID.randomUUID().toString(true);
 //        7.2、将user对象转为hash存储
@@ -94,10 +117,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + tokenKey,userMap);
 //        7.4、设置token有效期
         stringRedisTemplate.expire(tokenKey, LOGIN_USER_TTL, TimeUnit.MINUTES);
-        return Result.ok(tokenKey);
     }
 
-//    签到功能
+    //    签到功能
     @Override
     public Result sign() {
         Long userId = UserHolder.getUser().getId();
