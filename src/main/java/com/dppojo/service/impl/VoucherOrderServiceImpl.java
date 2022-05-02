@@ -12,7 +12,12 @@ import com.dppojo.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.amqp.core.ExchangeTypes;
+import org.springframework.amqp.rabbit.annotation.Exchange;
+import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -26,6 +31,7 @@ import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -56,7 +62,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         SECKILL_SCRIPT.setResultType(Long.class);
     }
 
-    @RabbitListener(queues = "order.queue")
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(name = "order.queue"),
+            exchange = @Exchange(name = "order.direct",type = ExchangeTypes.DIRECT),
+            key = "order.add"
+    ))
     public void listenOrderQueue(VoucherOrder order) throws InterruptedException {
         createVoucherOrder(order);
     }
@@ -110,13 +120,34 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         if(r != 0){
             return Result.fail(r == 1 ? "库存不足！" : "不允许重复下单！");
         }
-        String queueName = "order.queue";
         VoucherOrder voucherOrder = new VoucherOrder();
         voucherOrder.setId(orderId);
         voucherOrder.setUserId(userId);
         voucherOrder.setVoucherId(voucherId);
-        rabbitTemplate.convertAndSend(queueName,voucherOrder);
+        try {
+            SendMessageOrderQueue(voucherOrder);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return Result.ok(orderId);
     }
 
+    public void SendMessageOrderQueue(VoucherOrder voucherOrder) throws InterruptedException {
+        CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());
+        correlationData.getFuture().addCallback(confirm -> {
+            if(confirm.isAck()){
+                // 3.1.ack，消息成功
+                log.debug("消息发送成功, ID:{}", correlationData.getId());
+            }else{
+                // 3.2.nack，消息失败
+                log.error("消息发送失败, ID:{}, 原因{}",correlationData.getId(), confirm.getReason());
+//                重发消息
+                rabbitTemplate.convertAndSend("order.direct", "order.add", voucherOrder,correlationData);
+            }
+        }, throwable ->{
+            log.error("消息发送异常, ID:{}, 原因{}",correlationData.getId(),throwable.getMessage());
+            rabbitTemplate.convertAndSend("order.direct", "order.add", voucherOrder,correlationData);
+        }) ;
+        rabbitTemplate.convertAndSend("order.direct","order.add", voucherOrder,correlationData);
+    }
 }
