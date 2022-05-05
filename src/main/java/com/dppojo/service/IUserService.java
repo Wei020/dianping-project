@@ -17,9 +17,11 @@ import javax.servlet.http.HttpSession;
  */
 public interface IUserService extends IService<User> {
 
-    Result sendCode(String phone, HttpSession session);
+    Result sendPhoneCode(String phone);
 
-    Result login(LoginFormDTO loginForm, HttpSession session);
+    Result sendEmailCode(String eamil);
+
+    Result login(LoginFormDTO loginForm);
 
     Result sign();
 

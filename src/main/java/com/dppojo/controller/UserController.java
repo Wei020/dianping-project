@@ -38,20 +38,26 @@ public class UserController {
     /**
      * 发送手机验证码
      */
-    @PostMapping("code")
-    public Result sendCode(@RequestParam("phone") String phone, HttpSession session) {
+    @PostMapping("/phoned")
+    public Result sendPhoneCode(@RequestParam("phone") String phone) {
         // TODO 发送短信验证码并保存验证码
-        return userService.sendCode(phone, session);
+        return userService.sendPhoneCode(phone);
+    }
+
+    @PostMapping("/emailed")
+    public Result sendEmailCode(@RequestParam("email") String eamil) {
+        // TODO 发送短信验证码并保存验证码
+        return userService.sendEmailCode(eamil);
     }
 
     /**
      * 登录功能
-     * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
+     * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码；或者邮箱、密码
      */
     @PostMapping("/login")
-    public Result login(@RequestBody LoginFormDTO loginForm, HttpSession session){
+    public Result login(@RequestBody LoginFormDTO loginForm){
         // TODO 实现登录功能
-        return userService.login(loginForm, session);
+        return userService.login(loginForm);
     }
 
     /**

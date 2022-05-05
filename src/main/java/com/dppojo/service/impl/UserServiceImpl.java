@@ -14,6 +14,7 @@ import com.dppojo.service.IUserService;
 import com.dppojo.utils.RegexUtils;
 import com.dppojo.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -39,8 +40,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     private String tokenKey;
 
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
     @Override
-    public Result sendCode(String phone, HttpSession session) {
+    public Result sendPhoneCode(String phone) {
 //        1、校验手机号
         if(RegexUtils.isPhoneInvalid(phone)){
             //        2、不符合返回错误信息
@@ -57,9 +61,41 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public Result login(LoginFormDTO loginForm, HttpSession session) {
+    public Result sendEmailCode(String eamil) {
+        //        1、校验邮箱
+        if(RegexUtils.isEmailInvalid(eamil)){
+            //        2、不符合返回错误信息
+            return Result.fail("邮箱格式错误!");
+        }
+//        3、符合，生成验证码
+        String code = RandomUtil.randomNumbers(6);
+//        4、保存验证码到session
+//        session.setAttribute("code",code);
+        stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + eamil, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
+//        5、发送验证码
+//        log.info("发送邮箱验证码成功，验证码:"+code);
+        Map<String, String> map = new HashMap<>();
+        map.put("email", eamil);
+        map.put("code", code);
+        rabbitTemplate.convertAndSend("code.direct","code.email", map);
+        return Result.ok();
+    }
+
+    @Override
+    public Result login(LoginFormDTO loginForm) {
 //        1、校验手机号
         String phone = loginForm.getPhone();
+        if(phone != null)
+            return loginByPhone(loginForm, phone);
+        String email = loginForm.getEmail();
+        if(RegexUtils.isEmailInvalid(email)){
+            //        2、不符合返回错误信息
+            return Result.fail("邮箱格式错误!");
+        }
+        return LoginByEmailCode(loginForm, email);
+    }
+
+    private Result loginByPhone(LoginFormDTO loginForm, String phone) {
         if(RegexUtils.isPhoneInvalid(phone)){
             //        2、不符合返回错误信息
             return Result.fail("手机号格式错误!");
@@ -67,7 +103,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 //        判断是否密码登录
         String pwd = loginForm.getPassword();
         if(pwd == null || pwd.isEmpty()){
-            return LoginByCode(loginForm, phone);
+            return LoginByPhoneCode(loginForm, phone);
         }else{
             User user = query().eq("phone", phone).eq("password", pwd).one();
             if(user == null)
@@ -80,9 +116,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
     }
 
-    private Result LoginByCode(LoginFormDTO loginForm, String phone) {
+    private Result LoginByEmailCode(LoginFormDTO loginForm, String email) {
         //        2、校验验证码
-//        Object cacheCode = session.getAttribute("code");
+        Object cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + email);
+        String code = loginForm.getCode();
+        if(cacheCode == null || !cacheCode.toString().equals(code)){
+            //        3、不一致，报错
+            return Result.fail("验证码错误！");
+        }
+//        4、一致，根据手机号查询用户
+        User user = query().eq("email", email).one();
+//        5、判断用户是否存在
+        if (user == null) {
+            //        6、不存在，创建新用户并保存
+            user = createUserWithEmail(email);
+        }
+//        保存用户信息
+        saveUserMsg(user);
+        return Result.ok(tokenKey);
+    }
+
+    private Result LoginByPhoneCode(LoginFormDTO loginForm, String phone) {
+        //        2、校验验证码
         Object cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
         String code = loginForm.getCode();
         if(cacheCode == null || !cacheCode.toString().equals(code)){
@@ -176,7 +231,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private User createUserWithPhone(String phone) {
 //        1、创建用户
         User user = new User();
-        user.setPassword(phone);
+        user.setPhone(phone);
+        user.setNickName(USER_NICK_NAME_PREFIX + RandomUtil.randomString(10));
+//        2、保存用户
+        save(user);
+        return user;
+    }
+
+    private User createUserWithEmail(String email) {
+//        1、创建用户
+        User user = new User();
+        user.setEmail(email);
         user.setNickName(USER_NICK_NAME_PREFIX + RandomUtil.randomString(10));
 //        2、保存用户
         save(user);

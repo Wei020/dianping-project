@@ -1,6 +1,6 @@
 package com.dppojo.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
+
 import com.dppojo.dto.Result;
 import com.dppojo.entity.VoucherOrder;
 import com.dppojo.mapper.VoucherOrderMapper;
@@ -21,19 +21,11 @@ import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
-import javax.annotation.PostConstruct;
-import java.time.Duration;
-import java.time.LocalTime;
 import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Slf4j
 @Service

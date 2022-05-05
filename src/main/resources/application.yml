@@ -30,8 +30,17 @@ spring:
     publisher-returns: true
     template:
       mandatory: true
+  mail:
+    host: smtp.qq.com
+    username: haoxiang020@qq.com
+    password: wjjdakiohhvlbcea
 mybatis-plus:
   type-aliases-package: com.dppojo.entity # 别名扫描包
 logging:
   level:
     com.dppojo: debug
+email:
+  subject: "登录验证码"
+  context:
+    prefix: "欢迎您访问好享，您的登录验证码为:"
+    suffix: "有效时间2分钟"
