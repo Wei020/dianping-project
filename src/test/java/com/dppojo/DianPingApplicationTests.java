@@ -13,6 +13,6 @@ class DianPingApplicationTests {
 
     @Test
     void testIdWorker(){
-        sendMailService.sendMail("780559756@qq.com", "555666");
+        sendMailService.sendMail("422953951@qq.com", "555666");
     }
 }

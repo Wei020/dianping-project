@@ -31,7 +31,8 @@ public class SendMailServiceImpl implements SendMailService {
         message.setFrom(from);
         message.setTo(to);
         message.setSubject(subject);
-        message.setText(contextPrefix + code + contextSuffix);
+        String content = contextPrefix + code + "\n" + contextSuffix;
+        message.setText(content);
         javaMailSender.send(message);
     }
 }
