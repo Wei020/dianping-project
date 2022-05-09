@@ -5,16 +5,7 @@ import com.dppojo.dto.LoginFormDTO;
 import com.dppojo.dto.Result;
 import com.dppojo.entity.User;
 
-import javax.servlet.http.HttpSession;
 
-/**
- * <p>
- *  服务类
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
- */
 public interface IUserService extends IService<User> {
 
     Result sendPhoneCode(String phone);
@@ -28,4 +19,8 @@ public interface IUserService extends IService<User> {
     Result signCount();
 
     Result logout();
+
+    Result queryUserById(Long userId);
+
+    Result info(Long userId);
 }

@@ -29,4 +29,5 @@ public class RabbitMqListener {
         log.info("验证码:" + code);
         sendMailService.sendMail(to, code);
     }
+
 }

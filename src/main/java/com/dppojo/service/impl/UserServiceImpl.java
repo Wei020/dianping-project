@@ -9,7 +9,9 @@ import com.dppojo.dto.LoginFormDTO;
 import com.dppojo.dto.Result;
 import com.dppojo.dto.UserDTO;
 import com.dppojo.entity.User;
+import com.dppojo.entity.UserInfo;
 import com.dppojo.mapper.UserMapper;
+import com.dppojo.service.IUserInfoService;
 import com.dppojo.service.IUserService;
 import com.dppojo.utils.RegexUtils;
 import com.dppojo.utils.UserHolder;
@@ -19,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -42,6 +46,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private IUserInfoService userInfoService;
 
     @Override
     public Result sendPhoneCode(String phone) {
@@ -171,7 +178,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 //        7.3、存储
         stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + tokenKey,userMap);
 //        7.4、设置token有效期
-        stringRedisTemplate.expire(tokenKey, LOGIN_USER_TTL, TimeUnit.MINUTES);
+        stringRedisTemplate.expire(LOGIN_USER_KEY + tokenKey, LOGIN_USER_TTL, TimeUnit.MINUTES);
     }
 
     //    签到功能
@@ -226,6 +233,32 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             return Result.fail("退出失败！");
         UserHolder.removeUser();
         return Result.ok();
+    }
+
+    @Override
+    public Result queryUserById(Long userId) {
+        // 查询详情
+        User user = getById(userId);
+        if (user == null) {
+            return Result.ok();
+        }
+        UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+        // 返回
+        return Result.ok(userDTO);
+    }
+
+    @Override
+    public Result info(Long userId) {
+        // 查询详情
+        UserInfo info = userInfoService.getById(userId);
+        if (info == null) {
+            // 没有详情，应该是第一次查看详情
+            return Result.ok();
+        }
+        info.setCreateTime(null);
+        info.setUpdateTime(null);
+        // 返回
+        return Result.ok(info);
     }
 
     private User createUserWithPhone(String phone) {

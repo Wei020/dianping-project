@@ -44,3 +44,5 @@ email:
   context:
     prefix: "欢迎您访问好享，您的登录验证码为："
     suffix: "注意：有效时间2分钟"
+upload:
+  path: "C:\\Users\\wangwei\\IdeaProjects\\nginx-1.18.0\\html\\haoxiang\\imgs\\"
