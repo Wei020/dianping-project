@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RedisConfig {
 
+//    配置redis分布式锁
     @Bean
     public RedissonClient redissonClient(){
         Config config =new Config();

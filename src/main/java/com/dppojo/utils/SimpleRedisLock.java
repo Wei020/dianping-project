@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
+//setnx分布式锁方案
 public class SimpleRedisLock implements ILock{
 
     private StringRedisTemplate stringRedisTemplate;

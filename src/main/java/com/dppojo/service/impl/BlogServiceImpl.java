@@ -150,6 +150,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         return Result.ok();
     }
 
+//    滚动分页查询
     @Override
     public Result queryBlogOfFollow(Long max, Integer offset) {
         Long userId = UserHolder.getUser().getId();
@@ -163,6 +164,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         List<Long> ids = new ArrayList<>(typedTuples.size());
         long minTime = 0;
         int os = 1;
+//        os:计算本次查询score最小值相同个数作为偏移量
         for (ZSetOperations.TypedTuple<String> tuple : typedTuples) {
             ids.add(Long.valueOf(tuple.getValue()));
             long time = tuple.getScore().longValue();

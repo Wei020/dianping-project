@@ -64,7 +64,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     }
 
     private void createVoucherOrder(VoucherOrder order) {
-    //        一人一单
+    //        一人一单判断，兜底方案，理论上不会有问题
         Long userId = order.getUserId();
 //        创建锁对象
         RLock redisLock = redissonClient.getLock("lock:order:" + userId);
@@ -126,13 +126,14 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     public void SendMessageOrderQueue(VoucherOrder voucherOrder) throws InterruptedException {
         CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());
+//        异步回调
         correlationData.getFuture().addCallback(confirm -> {
             if(confirm.isAck()){
                 // 3.1.ack，消息成功
-                log.debug("消息发送成功, ID:{}", correlationData.getId());
+                log.debug("消息成功发送到交换机, ID:{}", correlationData.getId());
             }else{
                 // 3.2.nack，消息失败
-                log.error("消息发送失败, ID:{}, 原因{}",correlationData.getId(), confirm.getReason());
+                log.error("消息发送到交换机失败, ID:{}, 原因{}",correlationData.getId(), confirm.getReason());
 //                重发消息
                 rabbitTemplate.convertAndSend("order.direct", "order.add", voucherOrder,correlationData);
             }
