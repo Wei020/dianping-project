@@ -8,6 +8,9 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/dp_pojo?useSSL=false&serverTimezone=UTC
     username: root
     password: ww20010208
+  cloud:
+    nacos:
+      server-addr: localhost:8848
   redis:
     host: 192.168.10.100
     port: 6379
