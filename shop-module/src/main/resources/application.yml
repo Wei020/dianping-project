@@ -42,10 +42,6 @@ spring:
           multiplier: 2 #下一次失败等待时长倍数
           max-attempts: 3 #最大重试3次
           stateless: false  #有状态， 包含事务
-  mail:
-    host: smtp.qq.com
-    username: haoxiang020@qq.com
-    password: wjjdakiohhvlbcea
 mybatis-plus:
   type-aliases-package: com.example.shop.entity # 别名扫描包
 logging:

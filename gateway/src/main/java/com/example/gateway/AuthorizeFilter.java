@@ -25,7 +25,7 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
         }
         // 4.拦截
         // 4.1.禁止访问，设置状态码
-        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+        exchange.getResponse().setStatusCode(HttpStatus.resolve(401));
         // 4.2.结束处理
         return exchange.getResponse().setComplete();
     }

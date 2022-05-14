@@ -22,10 +22,7 @@ public class MvcConfig implements WebMvcConfigurer {
                         "/user/emailed",
                         "/user/login",
                         "/blog/hot",
-                        "/shop/**",
-                        "/shop-type/**",
-                        "/upload/**",
-                        "/voucher/**"
+                        "/upload/**"
                 ).order(1);
         registry.addInterceptor(new RefreshTokenInterceptor(stringRedisTemplate)).addPathPatterns("/**").order(0);//默认拦截所有
     }
