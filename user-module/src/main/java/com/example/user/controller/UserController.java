@@ -66,4 +66,9 @@ public class UserController {
     public Result signCount(){
         return userService.signCount();
     }
+
+    @GetMapping("/my-voucher")
+    public Result queryVoucherByUser(){
+        return userService.queryVoucherByUser();
+    }
 }

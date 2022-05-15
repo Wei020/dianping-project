@@ -25,4 +25,6 @@ public interface IUserService extends IService<User> {
     Result queryUserById(Long userId);
 
     Result info(Long userId);
+
+    Result queryVoucherByUser();
 }

@@ -1,6 +1,6 @@
 package com.example.feign.config;
 
-import com.example.feign.fallback.UserClientFallbackFactory;
+import com.example.feign.fallback.ShopClientFallbackFactory;
 import feign.Logger;
 import org.springframework.context.annotation.Bean;
 
@@ -12,7 +12,7 @@ public class DefaultFeignConfiguration {
     }
 
     @Bean
-    public UserClientFallbackFactory userClientFallbackFactory(){
-        return new UserClientFallbackFactory();
+    public ShopClientFallbackFactory shopClientFallbackFactory(){
+        return new ShopClientFallbackFactory();
     }
 }

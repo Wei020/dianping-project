@@ -26,6 +26,7 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -123,6 +124,12 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             e.printStackTrace();
         }
         return Result.ok(orderId);
+    }
+
+    @Override
+    public Result findVoucherByUser(Long id) {
+        List<VoucherOrder> voucherOrders = query().eq("user_id", id).list();
+        return Result.ok(voucherOrders);
     }
 
     public void SendMessageOrderQueue(VoucherOrder voucherOrder) throws InterruptedException {

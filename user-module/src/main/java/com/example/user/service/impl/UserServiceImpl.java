@@ -4,7 +4,11 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.feign.clients.ShopClient;
+import com.example.feign.entity.Voucher;
 import com.example.user.dto.LoginFormDTO;
 import com.example.user.dto.Result;
 import com.example.user.dto.UserDTO;
@@ -21,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -29,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import static com.example.user.utils.RedisConstants.*;
 import static com.example.user.utils.SystemConstants.USER_NICK_NAME_PREFIX;
 
@@ -49,6 +51,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Autowired
     private IUserInfoService userInfoService;
 
+    @Autowired
+    private ShopClient shopClient;
+
     @Override
     public Result sendPhoneCode(String phone) {
 //        1、校验手机号
@@ -63,7 +68,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
 //        5、发送验证码
         log.info("发送短信验证码成功，验证码:"+code);
-        return Result.ok();
+        return Result.ok("验证码已发送！");
     }
 
     @Override
@@ -84,7 +89,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         map.put("email", eamil);
         map.put("code", code);
         rabbitTemplate.convertAndSend("code.direct","code.email", map);
-        return Result.ok();
+        return Result.ok("验证码已发送！");
     }
 
     @Override
@@ -258,6 +263,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         info.setUpdateTime(null);
         // 返回
         return Result.ok(info);
+    }
+
+    @Override
+    public Result queryVoucherByUser() {
+        Long userId = UserHolder.getUser().getId();
+        List<Voucher> voucherByUser = shopClient.findVoucherByUser(userId);
+        System.out.println("有没有" + voucherByUser.toString());
+        return Result.ok(voucherByUser);
     }
 
     private User createUserWithPhone(String phone) {
