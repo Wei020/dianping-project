@@ -3,6 +3,7 @@ package com.example.shop.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.shop.dto.Result;
+import com.example.shop.entity.Voucher;
 import com.example.shop.entity.VoucherOrder;
 import com.example.shop.mapper.VoucherOrderMapper;
 import com.example.shop.service.ISeckillVoucherService;
@@ -127,9 +128,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     }
 
     @Override
-    public Result findVoucherByUser(Long id) {
-        List<VoucherOrder> voucherOrders = query().eq("user_id", id).list();
-        return Result.ok(voucherOrders);
+    public VoucherOrder findVoucherByUser(Long id) {
+        VoucherOrder voucherOrder = query().eq("user_id", id).one();
+        return voucherOrder;
     }
 
     public void SendMessageOrderQueue(VoucherOrder voucherOrder) throws InterruptedException {

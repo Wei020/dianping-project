@@ -9,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.feign.clients.ShopClient;
 import com.example.feign.entity.Voucher;
+import com.example.feign.entity.VoucherOrder;
 import com.example.user.dto.LoginFormDTO;
 import com.example.user.dto.Result;
 import com.example.user.dto.UserDTO;
@@ -268,9 +269,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public Result queryVoucherByUser() {
         Long userId = UserHolder.getUser().getId();
-        List<Voucher> voucherByUser = shopClient.findVoucherByUser(userId);
-        System.out.println("有没有" + voucherByUser.toString());
-        return Result.ok(voucherByUser);
+        VoucherOrder voucherOrder = shopClient.findVoucherByUser(userId);
+        return Result.ok(voucherOrder);
     }
 
     private User createUserWithPhone(String phone) {
