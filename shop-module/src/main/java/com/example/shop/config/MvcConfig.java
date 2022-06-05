@@ -1,6 +1,5 @@
 package com.example.shop.config;
 
-import com.example.shop.utils.LoginInterceptor;
 import com.example.shop.utils.RefreshTokenInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -16,12 +15,6 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-//        registry.addInterceptor(new LoginInterceptor())
-//                .excludePathPatterns(
-//                        "/shop/**",
-//                        "/shop-type/**",
-//                        "/voucher/**"
-//                ).order(1);
         registry.addInterceptor(new RefreshTokenInterceptor(stringRedisTemplate)).addPathPatterns("/**").order(0);//默认拦截所有
     }
 }
