@@ -86,6 +86,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
             this.queryBlogUser(blog);
             this.isBlogLiked(blog);
         });
+        if(records.isEmpty())
+            return Result.ok();
         return Result.ok(records);
     }
 
@@ -154,7 +156,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         Long userId = UserHolder.getUser().getId();
         String key = FEED_KEY + userId;
         Set<ZSetOperations.TypedTuple<String>> typedTuples = stringRedisTemplate.opsForZSet()
-                .reverseRangeByScoreWithScores(key, 0, max, offset, 2);
+                .reverseRangeByScoreWithScores(key, 0, max, offset, 3);
 //        非空判断
         if(typedTuples == null || typedTuples.isEmpty())
             return Result.ok();
@@ -186,5 +188,24 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         r.setMinTime(minTime);
         r.setOffset(os);
         return Result.ok(r);
+    }
+
+    @Override
+    public Result queryMyBlog(Integer current) {
+        Long id = UserHolder.getUser().getId();
+        Page<Blog> page = query()
+                .orderByDesc("create_time")
+                .eq("user_id", id)
+                .page(new Page<>(current, SystemConstants.My_PAGE_SIZE));
+        // 获取当前页数据
+        List<Blog> records = page.getRecords();
+        // 查询用户
+        records.forEach(blog -> {
+            this.queryBlogUser(blog);
+            this.isBlogLiked(blog);
+        });
+        if(records.isEmpty())
+            return Result.ok();
+        return Result.ok(records);
     }
 }

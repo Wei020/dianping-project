@@ -32,7 +32,7 @@ spring:
   mail:
     host: smtp.qq.com
     username: haoxiang020@qq.com
-    password: wjjdakiohhvlbcea
+    password:
 mybatis-plus:
   type-aliases-package: com.example.user.entity # 别名扫描包
 logging:
