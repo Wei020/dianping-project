@@ -3,11 +3,9 @@ package com.example.user.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.user.dto.Result;
-import com.example.user.dto.UserDTO;
 import com.example.user.entity.Blog;
-import com.example.user.service.IBlogService;
+import com.example.user.service.BlogService;
 import com.example.user.utils.SystemConstants;
-import com.example.user.utils.UserHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -18,7 +16,7 @@ import java.util.List;
 public class BlogController {
 
     @Resource
-    private IBlogService blogService;
+    private BlogService blogService;
 
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {

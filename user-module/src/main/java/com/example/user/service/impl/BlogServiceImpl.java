@@ -12,9 +12,9 @@ import com.example.user.entity.Blog;
 import com.example.user.entity.Follow;
 import com.example.user.entity.User;
 import com.example.user.mapper.BlogMapper;
-import com.example.user.service.IBlogService;
-import com.example.user.service.IFollowService;
-import com.example.user.service.IUserService;
+import com.example.user.service.BlogService;
+import com.example.user.service.FollowService;
+import com.example.user.service.UserService;
 import com.example.user.utils.SystemConstants;
 import com.example.user.utils.UserHolder;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -31,16 +31,16 @@ import static com.example.user.utils.RedisConstants.FEED_KEY;
 
 
 @Service
-public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IBlogService {
+public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements BlogService {
 
     @Resource
-    private IUserService userService;
+    private UserService userService;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
     @Resource
-    private IFollowService followService;
+    private FollowService followService;
 
     @Override
     public Result queryBlogById(Long id) {

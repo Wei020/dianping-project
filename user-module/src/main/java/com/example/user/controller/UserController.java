@@ -3,7 +3,7 @@ package com.example.user.controller;
 import com.example.user.dto.LoginFormDTO;
 import com.example.user.dto.Result;
 import com.example.user.dto.UserDTO;
-import com.example.user.service.IUserService;
+import com.example.user.service.UserService;
 import com.example.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 public class UserController {
 
     @Resource
-    private IUserService userService;
+    private UserService userService;
 
 
     @PostMapping("/phoned")

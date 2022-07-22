@@ -8,7 +8,7 @@ import com.example.user.entity.User;
 import javax.servlet.http.HttpServletRequest;
 
 
-public interface IUserService extends IService<User> {
+public interface UserService extends IService<User> {
 
     Result sendPhoneCode(String phone);
 

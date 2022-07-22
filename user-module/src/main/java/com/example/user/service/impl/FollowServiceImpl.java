@@ -7,8 +7,8 @@ import com.example.user.dto.Result;
 import com.example.user.dto.UserDTO;
 import com.example.user.entity.Follow;
 import com.example.user.mapper.FollowMapper;
-import com.example.user.service.IFollowService;
-import com.example.user.service.IUserService;
+import com.example.user.service.FollowService;
+import com.example.user.service.UserService;
 import com.example.user.utils.UserHolder;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -21,13 +21,13 @@ import java.util.stream.Collectors;
 
 
 @Service
-public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> implements IFollowService {
+public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> implements FollowService {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
     @Resource
-    private IUserService userService;
+    private UserService userService;
 
     @Override
     public Result follow(Long followUserId, Boolean isFollow) {

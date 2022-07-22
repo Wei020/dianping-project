@@ -5,7 +5,7 @@ import com.example.user.dto.Result;
 import com.example.user.entity.Follow;
 
 
-public interface IFollowService extends IService<Follow> {
+public interface FollowService extends IService<Follow> {
 
     Result follow(Long followUserId, Boolean isFollow);
 

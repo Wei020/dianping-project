@@ -2,7 +2,7 @@ package com.example.user.controller;
 
 
 import com.example.user.dto.Result;
-import com.example.user.service.IFollowService;
+import com.example.user.service.FollowService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -12,7 +12,7 @@ import javax.annotation.Resource;
 public class FollowController {
 
     @Resource
-    private IFollowService followService;
+    private FollowService followService;
 
     @PutMapping("/{id}/{isFollow}")
     public Result follow(@PathVariable("id") Long followUserId, @PathVariable("isFollow") Boolean isFollow){

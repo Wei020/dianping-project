@@ -5,7 +5,7 @@ import com.example.user.dto.Result;
 import com.example.user.entity.Blog;
 
 
-public interface IBlogService extends IService<Blog> {
+public interface BlogService extends IService<Blog> {
 
     Result queryBlogById(Long id);
 

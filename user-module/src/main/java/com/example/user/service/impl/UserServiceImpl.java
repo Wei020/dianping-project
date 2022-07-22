@@ -4,11 +4,8 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.json.JSON;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.feign.clients.ShopClient;
-import com.example.feign.entity.Voucher;
 import com.example.feign.entity.VoucherOrder;
 import com.example.user.dto.LoginFormDTO;
 import com.example.user.dto.Result;
@@ -16,8 +13,8 @@ import com.example.user.dto.UserDTO;
 import com.example.user.entity.User;
 import com.example.user.entity.UserInfo;
 import com.example.user.mapper.UserMapper;
-import com.example.user.service.IUserInfoService;
-import com.example.user.service.IUserService;
+import com.example.user.service.UserInfoService;
+import com.example.user.service.UserService;
 import com.example.user.utils.RegexUtils;
 import com.example.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +36,7 @@ import static com.example.user.utils.SystemConstants.USER_NICK_NAME_PREFIX;
 
 @Slf4j
 @Service
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -50,7 +47,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private RabbitTemplate rabbitTemplate;
 
     @Autowired
-    private IUserInfoService userInfoService;
+    private UserInfoService userInfoService;
 
     @Autowired
     private ShopClient shopClient;
