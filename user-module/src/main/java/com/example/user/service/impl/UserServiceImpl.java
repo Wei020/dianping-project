@@ -13,6 +13,7 @@ import com.example.user.dto.UserDTO;
 import com.example.user.entity.User;
 import com.example.user.entity.UserInfo;
 import com.example.user.mapper.UserMapper;
+import com.example.user.service.SendMailService;
 import com.example.user.service.UserInfoService;
 import com.example.user.service.UserService;
 import com.example.user.utils.RegexUtils;
@@ -52,6 +53,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private ShopClient shopClient;
 
+    @Autowired
+    private SendMailService sendMailService;
+
     @Override
     public Result sendPhoneCode(String phone) {
 //        1、校验手机号
@@ -83,10 +87,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + eamil, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
 //        5、发送验证码
 //        log.info("发送邮箱验证码成功，验证码:"+code);
-        Map<String, String> map = new HashMap<>();
-        map.put("email", eamil);
-        map.put("code", code);
-        rabbitTemplate.convertAndSend("code.direct","code.email", map);
+//        Map<String, String> map = new HashMap<>();
+//        map.put("email", eamil);
+//        map.put("code", code);
+//        rabbitTemplate.convertAndSend("code.direct","code.email", map);
+        sendMailService.sendMail(eamil, code);
         return Result.ok("验证码已发送！");
     }
 
