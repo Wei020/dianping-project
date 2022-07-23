@@ -45,9 +45,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private String tokenKey;
 
     @Autowired
-    private RabbitTemplate rabbitTemplate;
-
-    @Autowired
     private UserInfoService userInfoService;
 
     @Autowired
