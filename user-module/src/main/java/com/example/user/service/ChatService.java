@@ -1,5 +1,9 @@
 package com.example.user.service;
 
-public interface ChatService {
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.user.entity.Message;
 
+public interface ChatService extends IService<Message> {
+
+    void saveEntity(Message message);
 }
