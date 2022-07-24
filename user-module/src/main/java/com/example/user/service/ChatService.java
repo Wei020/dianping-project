@@ -5,5 +5,4 @@ import com.example.user.entity.Message;
 
 public interface ChatService extends IService<Message> {
 
-    void saveEntity(Message message);
 }

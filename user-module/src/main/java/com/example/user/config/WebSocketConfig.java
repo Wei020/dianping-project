@@ -30,6 +30,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         //注册STOMP协议节点，同时指定使用SockJS协议。
-        registry.addEndpoint("/chat").withSockJS();
+        registry.addEndpoint("/connect").withSockJS();
     }
 }

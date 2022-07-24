@@ -11,7 +11,7 @@ spring:
         - id: user-service
           uri: lb://userservice
           predicates:
-            - Path=/user/**, /follow/**, /blog/**, /blog-comments/**, /upload/**
+            - Path=/user/**, /follow/**, /blog/**, /blog-comments/**, /upload/**, /chat/**
         - id: shop-service
           uri: lb://shopservice
           predicates:

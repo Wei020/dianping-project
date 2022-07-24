@@ -25,4 +25,6 @@ public class Message {
     private LocalDateTime sendTime;
 
     private String fromNickname;
+
+    private String fromIcon;
 }
