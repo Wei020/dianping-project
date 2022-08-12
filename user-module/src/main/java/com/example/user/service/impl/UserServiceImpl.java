@@ -5,8 +5,6 @@ import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.feign.clients.ShopClient;
-import com.example.feign.entity.VoucherOrder;
 import com.example.user.dto.LoginFormDTO;
 import com.example.user.dto.Result;
 import com.example.user.dto.UserDTO;
@@ -19,7 +17,6 @@ import com.example.user.service.UserService;
 import com.example.user.utils.RegexUtils;
 import com.example.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -47,8 +44,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private UserInfoService userInfoService;
 
-    @Autowired
-    private ShopClient shopClient;
+//    @Autowired
+//    private ShopClient shopClient;
 
     @Autowired
     private SendMailService sendMailService;
@@ -265,12 +262,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return Result.ok(info);
     }
 
-    @Override
-    public Result queryVoucherByUser() {
-        Long userId = UserHolder.getUser().getId();
-        VoucherOrder voucherOrder = shopClient.findVoucherByUser(userId);
-        return Result.ok(voucherOrder);
-    }
+//    @Override
+//    public Result queryVoucherByUser() {
+//        Long userId = UserHolder.getUser().getId();
+//        VoucherOrder voucherOrder = shopClient.findVoucherByUser(userId);
+//        return Result.ok(voucherOrder);
+//    }
 
     private User createUserWithPhone(String phone) {
 //        1、创建用户

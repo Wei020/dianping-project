@@ -26,5 +26,5 @@ public interface UserService extends IService<User> {
 
     Result info(Long userId);
 
-    Result queryVoucherByUser();
+//    Result queryVoucherByUser();
 }

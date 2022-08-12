@@ -1,4 +1,4 @@
-package com.example.feign.dto;
+package com.example.user.dto;
 
 import lombok.Data;
 
