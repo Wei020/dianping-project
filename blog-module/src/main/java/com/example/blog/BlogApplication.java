@@ -1,4 +1,4 @@
-package com.example.user;
+package com.example.blog;
 
 import com.example.feign.clients.UserClient;
 import com.example.feign.config.DefaultFeignConfiguration;
@@ -7,8 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-public class UserApplication {
+@EnableFeignClients(defaultConfiguration = DefaultFeignConfiguration.class,clients = UserClient.class)
+public class BlogApplication {
     public static void main(String[] args) {
-        SpringApplication.run(UserApplication.class, args);
+        SpringApplication.run(BlogApplication.class, args);
     }
 }
