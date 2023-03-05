@@ -3,6 +3,8 @@ package com.example.user.controller;
 import com.example.user.dto.LoginFormDTO;
 import com.example.user.dto.Result;
 import com.example.user.dto.UserDTO;
+import com.example.user.entity.User;
+import com.example.user.entity.UserInfo;
 import com.example.user.service.UserService;
 import com.example.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +29,18 @@ public class UserController {
     }
 
     @PostMapping("/emailed")
-    public Result sendEmailCode(@RequestParam("email") String eamil) {
-        return userService.sendEmailCode(eamil);
+    public Result sendEmailCode(@RequestParam("email") String email) {
+        return userService.sendEmailCode(email);
     }
 
     @PostMapping("/login")
     public Result login(@RequestBody LoginFormDTO loginForm){
         return userService.login(loginForm);
+    }
+
+    @PostMapping("/findPassword")
+    public Result findPassword(@RequestBody LoginFormDTO loginForm){
+        return userService.findPassword(loginForm);
     }
 
     @PostMapping("/logout")
@@ -44,6 +51,7 @@ public class UserController {
     @GetMapping("/me")
     public Result me(){
         UserDTO user = UserHolder.getUser();
+        log.info("获取的名字:" + user.getNickName());
         return Result.ok(user);
     }
 
@@ -70,5 +78,15 @@ public class UserController {
     @GetMapping("/my-voucher")
     public Result queryVoucherByUser(){
         return userService.queryVoucherByUser();
+    }
+
+    @PostMapping("/edit")
+    public Result editName(@RequestBody User user, HttpServletRequest request){
+        return userService.edit(user, request);
+    }
+
+    @PostMapping("/infoEdit")
+    public Result infoEdit(@RequestBody UserInfo userInfo){
+        return userService.infoEdit(userInfo);
     }
 }

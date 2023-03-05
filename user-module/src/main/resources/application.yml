@@ -10,9 +10,9 @@ spring:
     password: ww20010208
   cloud:
     nacos:
-      server-addr: localhost:8848
+      server-addr: 8.130.51.5:8848
   redis:
-    host: 192.168.10.100
+    host: 8.130.51.5
     port: 6379
     password: 123321
     lettuce:
@@ -24,15 +24,19 @@ spring:
   jackson:
     default-property-inclusion: non_null # JSON处理时忽略非空字段
   rabbitmq:
-    host: 192.168.10.100
+    host: 8.130.51.5
     port: 5672
-    username: itcast
+    username: wei
     password: 123321
     virtual-host: /
   mail:
     host: smtp.qq.com
     username: haoxiang020@qq.com
-    password:
+    password: wjjdakiohhvlbcea
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 30MB
 mybatis-plus:
   type-aliases-package: com.example.user.entity # 别名扫描包
 logging:
@@ -44,4 +48,4 @@ email:
     prefix: "欢迎您访问好享，您的登录验证码为："
     suffix: "注意：有效时间2分钟"
 upload:
-  path: "C:\\Users\\wangwei\\IdeaProjects\\nginx-1.18.0\\html\\haoxiang\\imgs\\"
+  path: "C:\\Users\\wangwei\\Desktop\\nginx-1.18.0\\html\\haoxiang\\imgs\\"

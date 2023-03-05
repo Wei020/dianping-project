@@ -4,6 +4,8 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.feign.clients.ShopClient;
 import com.example.feign.entity.VoucherOrder;
@@ -120,7 +122,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if(user == null)
                 return Result.fail("密码错误！");
             else{
-                saveUserMsg(user);
+                tokenKey = UUID.randomUUID().toString(true);
+                saveUserMsg(user, tokenKey);
                 return Result.ok(tokenKey);
             }
 
@@ -143,7 +146,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             user = createUserWithEmail(email);
         }
 //        保存用户信息
-        saveUserMsg(user);
+        //        7.1、随机生成token，作为登录令牌
+        tokenKey = UUID.randomUUID().toString(true);
+        saveUserMsg(user, tokenKey);
         return Result.ok(tokenKey);
     }
 
@@ -163,14 +168,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             user = createUserWithPhone(phone);
         }
 //        保存用户信息
-        saveUserMsg(user);
+        //        7.1、随机生成token，作为登录令牌
+        tokenKey = UUID.randomUUID().toString(true);
+        saveUserMsg(user, tokenKey);
         return Result.ok(tokenKey);
     }
 
-    private void saveUserMsg(User user) {
+    private void saveUserMsg(User user, String tokenKey) {
         //        7、保存用户信息到redis中
-//        7.1、随机生成token，作为登录令牌
-        tokenKey = UUID.randomUUID().toString(true);
 //        7.2、将user对象转为hash存储
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
 //        session.setAttribute("user", BeanUtil.copyProperties(user, UserDTO.class));
@@ -254,7 +259,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public Result info(Long userId) {
         // 查询详情
+        log.info("查询id:" + userId);
         UserInfo info = userInfoService.getById(userId);
+        log.info("查询结果:" + JSONUtil.toJsonStr(info));
         if (info == null) {
             // 没有详情，应该是第一次查看详情
             return Result.ok();
@@ -272,6 +279,45 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return Result.ok(voucherOrder);
     }
 
+    @Override
+    public Result edit(User user, HttpServletRequest request) {
+        boolean update = updateById(user);
+        tokenKey = request.getHeader("authorization");
+        saveUserMsg(user, tokenKey);
+        return Result.ok(update);
+    }
+
+    @Override
+    public Result infoEdit(UserInfo userInfo) {
+        UpdateWrapper<UserInfo> wrapper = new UpdateWrapper<>();
+        wrapper.eq("user_id", userInfo.getUserId());
+        boolean update = userInfoService.saveOrUpdate(userInfo, wrapper);
+        return Result.ok(update);
+    }
+
+    @Override
+    public Result findPassword(LoginFormDTO loginForm) {
+        String phone = loginForm.getPhone();
+        String email = loginForm.getEmail();
+        String code = loginForm.getCode();
+        String password = loginForm.getPassword();
+        Object cacheCode = null;
+        if(phone != null){
+            cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
+        }else
+            cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + email);
+        if(cacheCode == null || !cacheCode.toString().equals(code)){
+            //        3、不一致，报错
+            return Result.fail("验证码错误！");
+        }
+        boolean update = false;
+        if(phone != null)
+            update = update().set("password", password).eq("phone", phone).update();
+        else
+            update = update().set("password", password).eq("email", email).update();
+        return Result.ok(update);
+    }
+
     private User createUserWithPhone(String phone) {
 //        1、创建用户
         User user = new User();
@@ -279,6 +325,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setNickName(USER_NICK_NAME_PREFIX + RandomUtil.randomString(10));
 //        2、保存用户
         save(user);
+        log.info("新增的id：" + user.getId());
+        Boolean res = createUserInfo(user.getId());
+        if(!res)
+            log.info("创建失败:" + user.getId());
         return user;
     }
 
@@ -289,6 +339,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setNickName(USER_NICK_NAME_PREFIX + RandomUtil.randomString(10));
 //        2、保存用户
         save(user);
+        Boolean res = createUserInfo(user.getId());
+        if(!res)
+            log.info("创建失败:" + user.getId());
         return user;
+    }
+
+    private Boolean createUserInfo(Long Id){
+        log.info("拿到的Id：" + Id);
+        boolean save = userInfoService.saveUserInfo(Id);
+        return save;
     }
 }

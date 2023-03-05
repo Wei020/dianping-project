@@ -44,6 +44,7 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
                 "/user/phoned",
                 "/user/emailed",
                 "/user/login",
+                "/user/findPassword",
                 "/blog/hot"
         };
         boolean check = check(urls, uri);
