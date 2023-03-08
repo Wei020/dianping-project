@@ -1,4 +1,4 @@
-package com.example.user.dto;
+package com.example.blog.dto;
 
 import lombok.Data;
 

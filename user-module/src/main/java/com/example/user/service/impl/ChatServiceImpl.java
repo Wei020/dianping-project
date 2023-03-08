@@ -1,28 +1,19 @@
 package com.example.user.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.json.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.user.entity.Blog;
 import com.example.user.entity.Chat;
 import com.example.user.entity.Message;
-import com.example.user.entity.User;
-import com.example.user.mapper.BlogMapper;
 import com.example.user.mapper.ChatMapper;
 import com.example.user.service.ChatService;
 import com.example.user.service.MessageService;
-import com.example.user.service.UserService;
 import com.example.user.utils.RedisConstants;
-import com.example.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j

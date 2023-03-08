@@ -2,6 +2,7 @@ package com.example.feign.fallback;
 
 import com.example.feign.clients.UserClient;
 import com.example.feign.dto.Result;
+import com.example.feign.dto.UserListDTO;
 import com.example.feign.entity.User;
 import feign.hystrix.FallbackFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +21,10 @@ public class UserClientFallbackFactory implements FallbackFactory<UserClient> {
             }
 
             @Override
-            public List<User> query(List<Long> ids, String idStr) {
+            public Result queryUserList(UserListDTO userListDTO) {
                 return null;
             }
+
         };
     }
 }

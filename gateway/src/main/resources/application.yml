@@ -11,11 +11,15 @@ spring:
         - id: user-service
           uri: lb://userservice
           predicates:
-            - Path=/user/**, /follow/**, /blog/**, /blog-comments/**, /upload/**, /chat/**
+            - Path=/user/**, /upload/**, /chat/**
         - id: shop-service
           uri: lb://shopservice
           predicates:
             - Path=/shop/**, /shop-type/**, /voucher/**, /voucher-order/**
+        - id: blog-service
+          uri: lb://blogservice
+          predicates:
+            - Path=/follow/**, /blog/**, /blog-comments/**
   redis:
     host: 8.130.51.5
     port: 6379

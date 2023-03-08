@@ -1,40 +1,44 @@
-package com.example.user.service.impl;
+package com.example.blog.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.user.dto.Result;
-import com.example.user.dto.ScrollResult;
-import com.example.user.dto.UserDTO;
-import com.example.user.entity.Blog;
-import com.example.user.entity.Follow;
-import com.example.user.entity.User;
-import com.example.user.mapper.BlogMapper;
-import com.example.user.service.BlogService;
-import com.example.user.service.FollowService;
-import com.example.user.service.UserService;
-import com.example.user.utils.SystemConstants;
-import com.example.user.utils.UserHolder;
+import com.example.blog.dto.Result;
+import com.example.blog.dto.ScrollResult;
+import com.example.blog.dto.UserDTO;
+import com.example.blog.entity.Blog;
+import com.example.blog.entity.Follow;
+import com.example.blog.mapper.BlogMapper;
+import com.example.blog.service.BlogService;
+import com.example.blog.service.FollowService;
+import com.example.blog.utils.SystemConstants;
+import com.example.blog.utils.UserHolder;
+import com.example.feign.clients.UserClient;
+import com.example.feign.dto.UserListDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
+
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import static com.example.user.utils.RedisConstants.BLOG_LIKED_KEY;
-import static com.example.user.utils.RedisConstants.FEED_KEY;
 
+import static com.example.blog.utils.RedisConstants.BLOG_LIKED_KEY;
+import static com.example.blog.utils.RedisConstants.FEED_KEY;
 
+@Slf4j
 @Service
 public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements BlogService {
 
-    @Resource
-    private UserService userService;
+    @Autowired
+    private UserClient userClient;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
@@ -68,9 +72,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     private void queryBlogUser(Blog blog) {
         Long userId = blog.getUserId();
-        User user = userService.getById(userId);
-        blog.setName(user.getNickName());
-        blog.setIcon(user.getIcon());
+        Object object = userClient.queryUserById(userId).getData();
+        log.info("查询结果:" + JSONObject.toJSONString(object));
+        UserDTO userDTO = JSONObject.parseObject(JSONObject.toJSONString(object), UserDTO.class);
+        blog.setName(userDTO.getNickName());
+        blog.setIcon(userDTO.getIcon());
     }
 
     @Override
@@ -123,11 +129,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             return Result.ok(Collections.emptyList());
         List<Long> ids = top5.stream().map(Long::valueOf).collect(Collectors.toList());
         String idStr = StrUtil.join(",", ids);
-        List<UserDTO> userDTOS = userService.query().in("id", ids).last("order by field(id, " + idStr + ")")
-                .list()
-                .stream()
-                .map(user -> BeanUtil.copyProperties(user, UserDTO.class))
-                .collect(Collectors.toList());
+        UserListDTO userListDTO = new UserListDTO();
+        userListDTO.setIds(ids);
+        userListDTO.setIdStr(idStr);
+        log.info("查询条件:" + userListDTO);
+        Object object = userClient.queryUserList(userListDTO).getData();
+        log.info("远程获取结果:" + JSONObject.toJSONString(object));
+        List<UserDTO> userDTOS = JSONObject.parseArray(JSONObject.toJSONString(object), UserDTO.class);
         return Result.ok(userDTOS);
     }
 

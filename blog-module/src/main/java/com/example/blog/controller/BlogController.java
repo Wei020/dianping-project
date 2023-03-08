@@ -1,11 +1,11 @@
-package com.example.user.controller;
+package com.example.blog.controller;
 
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.user.dto.Result;
-import com.example.user.entity.Blog;
-import com.example.user.service.BlogService;
-import com.example.user.utils.SystemConstants;
+import com.example.blog.dto.Result;
+import com.example.blog.entity.Blog;
+import com.example.blog.service.BlogService;
+import com.example.blog.utils.SystemConstants;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

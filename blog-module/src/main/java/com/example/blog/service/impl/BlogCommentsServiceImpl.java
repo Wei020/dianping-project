@@ -1,15 +1,14 @@
-package com.example.user.service.impl;
+package com.example.blog.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.json.JSONObject;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.user.dto.CommentDTO;
-import com.example.user.dto.UserDTO;
-import com.example.user.entity.BlogComment;
-import com.example.user.entity.User;
-import com.example.user.mapper.BlogCommentsMapper;
-import com.example.user.service.BlogCommentsService;
-import com.example.user.service.UserService;
+import com.example.blog.dto.CommentDTO;
+import com.example.blog.dto.UserDTO;
+import com.example.blog.entity.BlogComment;
+import com.example.blog.mapper.BlogCommentsMapper;
+import com.example.blog.service.BlogCommentsService;
+import com.example.feign.clients.UserClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ import java.util.List;
 public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, BlogComment> implements BlogCommentsService {
 
     @Autowired
-    private UserService userService;
+    private UserClient userClient;
 
     @Override
     public List<CommentDTO> queryByBlogId(Long id) {
@@ -45,10 +44,10 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     private CommentDTO extracted(BlogComment blogComment) {
         CommentDTO commentDTO = new CommentDTO();
         BeanUtil.copyProperties(blogComment, commentDTO);
-        log.info("commentDTO为:" + commentDTO.toString());
-        User user = userService.getById(blogComment.getUserId());
-        UserDTO userDTO = new UserDTO();
-        BeanUtil.copyProperties(user, userDTO);
+        log.info("commentDTO为:" + commentDTO);
+        Object object = userClient.queryUserById(blogComment.getUserId()).getData();
+        log.info("查询结果:" + JSONObject.toJSONString(object));
+        UserDTO userDTO = JSONObject.parseObject(JSONObject.toJSONString(object), UserDTO.class);
         log.info(userDTO.toString());
         commentDTO.setUser(userDTO);
         return commentDTO;

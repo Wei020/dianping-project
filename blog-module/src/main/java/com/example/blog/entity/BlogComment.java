@@ -1,25 +1,36 @@
-package com.example.user.dto;
+package com.example.blog.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
+
 @Data
-public class CommentDTO {
+@EqualsAndHashCode(callSuper = false)
+@Accessors(chain = true)
+@TableName("tb_blog_comments")
+public class BlogComment implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * 主键
      */
     @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 用户信息
+     * 用户id
      */
-    private UserDTO user;
+    private Long userId;
 
     /**
      * 探店id
@@ -60,4 +71,6 @@ public class CommentDTO {
      * 更新时间
      */
     private LocalDateTime updateTime;
+
+
 }

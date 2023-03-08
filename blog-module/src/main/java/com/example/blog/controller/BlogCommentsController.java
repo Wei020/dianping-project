@@ -1,10 +1,10 @@
-package com.example.user.controller;
+package com.example.blog.controller;
 
 
-import com.example.user.dto.CommentDTO;
-import com.example.user.dto.Result;
-import com.example.user.entity.BlogComment;
-import com.example.user.service.BlogCommentsService;
+import com.example.blog.dto.CommentDTO;
+import com.example.blog.dto.Result;
+import com.example.blog.entity.BlogComment;
+import com.example.blog.service.BlogCommentsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

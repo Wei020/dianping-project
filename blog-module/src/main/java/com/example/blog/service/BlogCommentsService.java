@@ -1,8 +1,8 @@
-package com.example.user.service;
+package com.example.blog.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.example.user.dto.CommentDTO;
-import com.example.user.entity.BlogComment;
+import com.example.blog.dto.CommentDTO;
+import com.example.blog.entity.BlogComment;
 
 import java.util.List;
 

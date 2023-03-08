@@ -1,12 +1,14 @@
 package com.example.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.feign.dto.UserListDTO;
 import com.example.user.dto.LoginFormDTO;
 import com.example.user.dto.Result;
 import com.example.user.entity.User;
 import com.example.user.entity.UserInfo;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 
 public interface UserService extends IService<User> {
@@ -34,4 +36,8 @@ public interface UserService extends IService<User> {
     Result infoEdit(UserInfo userInfo);
 
     Result findPassword(LoginFormDTO loginForm);
+
+    Result queryUserList(UserListDTO userListDTO);
+
+    Result queryUserByCondition(String condition);
 }

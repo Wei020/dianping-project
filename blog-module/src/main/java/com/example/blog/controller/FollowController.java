@@ -1,8 +1,8 @@
-package com.example.user.controller;
+package com.example.blog.controller;
 
 
-import com.example.user.dto.Result;
-import com.example.user.service.FollowService;
+import com.example.blog.dto.Result;
+import com.example.blog.service.FollowService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

@@ -1,15 +1,19 @@
-package com.example.user.service.impl;
+package com.example.blog.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.user.dto.Result;
-import com.example.user.dto.UserDTO;
-import com.example.user.entity.Follow;
-import com.example.user.mapper.FollowMapper;
-import com.example.user.service.FollowService;
-import com.example.user.service.UserService;
-import com.example.user.utils.UserHolder;
+import com.example.blog.dto.Result;
+import com.example.blog.dto.UserDTO;
+import com.example.blog.entity.Follow;
+import com.example.blog.mapper.FollowMapper;
+import com.example.blog.service.FollowService;
+import com.example.blog.utils.UserHolder;
+import com.example.feign.clients.UserClient;
+import com.example.feign.dto.UserListDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -19,15 +23,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
+@Slf4j
 @Service
 public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> implements FollowService {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    @Resource
-    private UserService userService;
+    @Autowired
+    private UserClient userClient;
 
     @Override
     public Result follow(Long followUserId, Boolean isFollow) {
@@ -76,10 +80,12 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
         }
 //        解析id
         List<Long> ids = intersect.stream().map(Long::valueOf).collect(Collectors.toList());
-        List<UserDTO> userDTOS = userService.listByIds(ids)
-                .stream()
-                .map(user -> BeanUtil.copyProperties(user, UserDTO.class))
-                .collect(Collectors.toList());
+        UserListDTO userListDTO = new UserListDTO();
+        userListDTO.setIds(ids);
+        log.info("查询条件:" + userListDTO);
+        Object object = userClient.queryUserList(userListDTO).getData();
+        List<UserDTO> userDTOS = JSONObject.parseArray(JSONObject.toJSONString(object), UserDTO.class);
+        log.info("转换结果:" + userDTOS);
         return Result.ok(userDTOS);
     }
 }

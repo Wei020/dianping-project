@@ -5,8 +5,10 @@ import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.feign.dto.UserListDTO;
 import com.example.user.dto.LoginFormDTO;
 import com.example.user.dto.Result;
 import com.example.user.dto.UserDTO;
@@ -30,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import static com.example.user.utils.RedisConstants.*;
 import static com.example.user.utils.SystemConstants.USER_NICK_NAME_PREFIX;
 
@@ -318,6 +322,46 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         else
             update = update().set("password", password).eq("email", email).update();
         return Result.ok(update);
+    }
+
+    @Override
+    public Result queryUserList(UserListDTO userListDTO) {
+        List<Long> ids = userListDTO.getIds();
+        String idStr = userListDTO.getIdStr();
+        log.info("转换结果:" + ids);
+        if(idStr.isEmpty()){
+            List<UserDTO> userDTOS = listByIds(ids)
+                    .stream()
+                    .map(user -> BeanUtil.copyProperties(user, UserDTO.class))
+                    .collect(Collectors.toList());
+            return Result.ok(userDTOS);
+        }
+        List<UserDTO> userDTOS = query().in("id", ids).last("order by field(id, " + idStr + ")")
+                .list()
+                .stream()
+                .map(user -> BeanUtil.copyProperties(user, UserDTO.class))
+                .collect(Collectors.toList());
+        return Result.ok(userDTOS);
+    }
+
+    @Override
+    public Result queryUserByCondition(String condition) {
+        log.info("查询条件:" + condition);
+        User user = null;
+        if(!RegexUtils.isPhoneInvalid(condition)){
+            log.info("手机号");
+            user = query().eq("phone", condition).one();
+        }else if(!RegexUtils.isEmailInvalid(condition)){
+            log.info("邮箱号");
+            user = query().eq("email", condition).one();
+        }else{
+            log.info("昵称");
+            user = query().eq("nick_name", condition).one();
+        }
+        log.info("查询结果:" + user);
+        UserDTO userDTO = new UserDTO();
+        BeanUtil.copyProperties(user, userDTO);
+        return Result.ok(userDTO);
     }
 
     private User createUserWithPhone(String phone) {
