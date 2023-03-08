@@ -3,6 +3,7 @@ package com.example.user.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -15,13 +16,14 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("tb_blog_comments")
-public class BlogComments implements Serializable {
+public class BlogComment implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     /**
      * 主键
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 

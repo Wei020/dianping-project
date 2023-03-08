@@ -269,6 +269,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return Result.ok(info);
     }
 
+    @Override
+    public Result queryVoucherByUser() {
+        return null;
+    }
+
 //    @Override
 //    public Result queryVoucherByUser() {
 //        Long userId = UserHolder.getUser().getId();

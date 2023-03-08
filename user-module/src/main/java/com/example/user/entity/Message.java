@@ -22,6 +22,12 @@ public class Message {
 
     private String content;
 
+    /*
+    * 0:文字
+    * 1:文件
+    * */
+    private Integer type;
+
     private LocalDateTime sendTime;
 
     private String fromNickname;

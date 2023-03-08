@@ -2,6 +2,7 @@ package com.example.user.controller;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
+import com.example.user.dto.FileDTO;
 import com.example.user.dto.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,18 +20,22 @@ public class UploadController {
     @Value("${upload.path}")
     private String uploadPath;
 
+
+
     @PostMapping("/picture")
-    public Result uploadImage(@RequestParam("file") MultipartFile image) {
+    public Result uploadImage(@RequestParam("file") MultipartFile file) {
         try {
+            log.info("文件类型为：" + file.getContentType());
+            String type= file.getContentType();
             // 获取原始文件名称
-            String originalFilename = image.getOriginalFilename();
+            String originalFilename = file.getOriginalFilename();
             // 生成新文件名
-            String fileName = createNewFileName(originalFilename);
+            FileDTO fileDTO = createNewFileName(originalFilename, type);
             // 保存文件
-            image.transferTo(new File(uploadPath, fileName));
+            file.transferTo(new File(uploadPath, fileDTO.getFileName()));
             // 返回结果
-            log.debug("文件上传成功，{}", fileName);
-            return Result.ok(fileName);
+            log.debug("文件上传成功，{}", fileDTO);
+            return Result.ok(fileDTO);
         } catch (IOException e) {
             throw new RuntimeException("文件上传失败", e);
         }
@@ -46,7 +51,7 @@ public class UploadController {
         return Result.ok();
     }
 
-    private String createNewFileName(String originalFilename) {
+    private FileDTO createNewFileName(String originalFilename, String type) {
         // 获取后缀
         String suffix = StrUtil.subAfter(originalFilename, ".", true);
         // 生成目录
@@ -55,11 +60,26 @@ public class UploadController {
         int d1 = hash & 0xF;
         int d2 = (hash >> 4) & 0xF;
         // 判断目录是否存在
-        File dir = new File(uploadPath, StrUtil.format("/blogs/{}/{}", d1, d2));
+        FileDTO fileDTO = new FileDTO();
+        if (type.substring(0, type.indexOf('/')).equals("video")) {
+            File dir = new File(uploadPath, StrUtil.format("/videos/{}/{}", d1, d2));
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            // 生成文件名
+            String fileName = StrUtil.format("/videos/{}/{}/{}.{}", d1, d2, name, suffix);
+            fileDTO.setFileName(fileName);
+            fileDTO.setType(2);
+            return fileDTO;
+        }
+        File dir = new File(uploadPath, StrUtil.format("/imgs/{}/{}", d1, d2));
         if (!dir.exists()) {
             dir.mkdirs();
         }
         // 生成文件名
-        return StrUtil.format("/blogs/{}/{}/{}.{}", d1, d2, name, suffix);
+        String fileName =  StrUtil.format("/imgs/{}/{}/{}.{}", d1, d2, name, suffix);
+        fileDTO.setFileName(fileName);
+        fileDTO.setType(1);
+        return fileDTO;
     }
 }

@@ -30,7 +30,7 @@ import static com.example.user.utils.RedisConstants.BLOG_LIKED_KEY;
 import static com.example.user.utils.RedisConstants.FEED_KEY;
 
 
-//@Service
+@Service
 public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements BlogService {
 
     @Resource

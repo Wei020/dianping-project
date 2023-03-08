@@ -2,25 +2,15 @@ package com.example.user.controller;
 
 
 
-import cn.hutool.json.JSONObject;
-import com.example.user.dto.Result;
-import com.example.user.dto.UserDTO;
 import com.example.user.entity.Message;
-import com.example.user.entity.User;
-import com.example.user.service.ChatService;
 import com.example.user.service.MessageService;
-import com.example.user.service.UserService;
-import com.example.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 
-import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Controller
 @Slf4j

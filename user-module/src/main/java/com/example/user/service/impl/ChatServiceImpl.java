@@ -1,5 +1,9 @@
 package com.example.user.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.json.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.user.entity.Blog;
 import com.example.user.entity.Chat;
@@ -10,12 +14,15 @@ import com.example.user.mapper.ChatMapper;
 import com.example.user.service.ChatService;
 import com.example.user.service.MessageService;
 import com.example.user.service.UserService;
+import com.example.user.utils.RedisConstants;
 import com.example.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
@@ -25,10 +32,20 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
 
     @Override
     public List<Chat> queryChats(Long id) {
+        String key = RedisConstants.CHAT_LIST_KEY + id;
+        String s = stringRedisTemplate.opsForValue().get(key);
+        if(null != s){
+            List<Chat> list = JSONArray.parseArray(s, Chat.class);
+            return list;
+        }
         List<Chat> list = query().eq("from_id", id).or().eq("to_id", id).list();
+        stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(list));
         return list;
     }
 
@@ -55,6 +72,10 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
             return chat1;
         if(null != chat2)
             return chat2;
+        String key1 = RedisConstants.CHAT_LIST_KEY + fromId;
+        String key2 = RedisConstants.CHAT_LIST_KEY + toId;
+        stringRedisTemplate.delete(key1);
+        stringRedisTemplate.delete(key2);
         save(chat);
         log.info("id为:" + chat.getId());
         return chat;

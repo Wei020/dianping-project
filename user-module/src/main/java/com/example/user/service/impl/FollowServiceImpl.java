@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
-//@Service
+@Service
 public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> implements FollowService {
 
     @Resource
