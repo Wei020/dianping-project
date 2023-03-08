@@ -45,6 +45,7 @@ public class ShopController {
     public Result queryShopByType(
             @RequestParam("typeId") Integer typeId,
             @RequestParam(value = "current", defaultValue = "1") Integer current,
+            @RequestParam(value = "sortBy", defaultValue = "") String sortBy,
             @RequestParam(value = "x" , required = false) Double x,
             @RequestParam(value = "y", required = false) Double y
     ) {
@@ -53,7 +54,7 @@ public class ShopController {
 //                .eq("type_id", typeId)
 //                .page(new Page<>(current, SystemConstants.DEFAULT_PAGE_SIZE));
         // 返回数据
-        return shopService.queryShopByType(typeId, current, x, y);
+        return shopService.queryShopByType(typeId, current, sortBy,  x, y);
     }
 
 

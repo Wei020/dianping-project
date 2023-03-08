@@ -9,6 +9,7 @@ import com.example.shop.mapper.ShopMapper;
 import com.example.shop.service.IShopService;
 import com.example.shop.utils.CacheClient;
 import com.example.shop.utils.SystemConstants;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -25,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.example.shop.utils.RedisConstants.*;
 
-
+@Slf4j
 @Service
 public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IShopService {
 
@@ -66,12 +67,14 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     }
 
     @Override
-    public Result queryShopByType(Integer typeId, Integer current, Double x, Double y) {
+    public Result queryShopByType(Integer typeId, Integer current, String sortBy, Double x, Double y) {
+        log.info("排序方式为:" + sortBy);
 //        判断是否需要根据坐标查询
         x = null;
         if(x == null || y == null){
             Page<Shop> page = query()
                     .eq("type_id", typeId)
+                    .orderBy(!sortBy.isEmpty(), false, sortBy)
                     .page(new Page<>(current, SystemConstants.DEFAULT_PAGE_SIZE));
             return Result.ok(page.getRecords());
         }

@@ -22,7 +22,7 @@ public class UploadController {
 
 
 
-    @PostMapping("/picture")
+    @PostMapping("/file")
     public Result uploadImage(@RequestParam("file") MultipartFile file) {
         try {
             log.info("文件类型为：" + file.getContentType());
@@ -41,7 +41,7 @@ public class UploadController {
         }
     }
 
-    @GetMapping("/picture/delete")
+    @GetMapping("/file/delete")
     public Result deleteBlogImg(@RequestParam("name") String filename) {
         File file = new File(uploadPath, filename);
         if (file.isDirectory()) {
