@@ -1,20 +1,28 @@
 package com.example.user.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.user.dto.ChatDTO;
+import com.example.user.dto.UserDTO;
 import com.example.user.entity.Chat;
 import com.example.user.entity.Message;
+import com.example.user.entity.User;
 import com.example.user.mapper.ChatMapper;
 import com.example.user.service.ChatService;
 import com.example.user.service.MessageService;
+import com.example.user.service.UserService;
 import com.example.user.utils.RedisConstants;
+import com.example.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -26,18 +34,48 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+    @Autowired
+    private UserService userService;
+
 
     @Override
-    public List<Chat> queryChats(Long id) {
+    public List<ChatDTO> queryChats(Long id) {
         String key = RedisConstants.CHAT_LIST_KEY + id;
         String s = stringRedisTemplate.opsForValue().get(key);
         if(null != s){
-            List<Chat> list = JSONArray.parseArray(s, Chat.class);
+            List<ChatDTO> list = JSONArray.parseArray(s, ChatDTO.class);
             return list;
         }
         List<Chat> list = query().eq("from_id", id).or().eq("to_id", id).list();
-        stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(list));
-        return list;
+        List<ChatDTO> res = new LinkedList<>();
+        UserDTO userDTO = UserHolder.getUser();
+        for (Chat chat : list) {
+            ChatDTO chatDTO = BeanUtil.copyProperties(chat, ChatDTO.class);
+            if(Objects.equals(chat.getFromId(), userDTO.getId())){
+                chatDTO.setFromIcon(userDTO.getIcon());
+                chatDTO.setFromNickname(userDTO.getNickName());
+            }else {
+                User user = userService.query().eq("id", chat.getFromId()).one();
+                chatDTO.setFromIcon(user.getIcon());
+                chatDTO.setFromNickname(user.getNickName());
+            }
+            if(Objects.equals(chat.getToId(), userDTO.getId())){
+                chatDTO.setToIcon(userDTO.getIcon());
+                chatDTO.setToNickname(userDTO.getNickName());
+            }else {
+                User user = userService.query().eq("id", chat.getToId()).one();
+                if(null == user){
+                    chatDTO.setToIcon("");
+                    chatDTO.setToNickname("群聊");
+                }else{
+                    chatDTO.setToIcon(user.getIcon());
+                    chatDTO.setToNickname(user.getNickName());
+                }
+            }
+            res.add(chatDTO);
+        }
+        stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(res));
+        return res;
     }
 
     @Override

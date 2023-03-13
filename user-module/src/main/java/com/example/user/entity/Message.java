@@ -30,13 +30,6 @@ public class Message {
 
     private LocalDateTime sendTime;
 
-    private String fromNickname;
-
-    private String fromIcon;
-
-    private String toNickname;
-
-    private String toIcon;
 
     private Long chatId;
 }

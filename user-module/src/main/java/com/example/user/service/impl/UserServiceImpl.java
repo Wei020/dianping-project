@@ -15,6 +15,7 @@ import com.example.user.dto.UserDTO;
 import com.example.user.entity.User;
 import com.example.user.entity.UserInfo;
 import com.example.user.mapper.UserMapper;
+import com.example.user.service.ChatService;
 import com.example.user.service.SendMailService;
 import com.example.user.service.UserInfoService;
 import com.example.user.service.UserService;
@@ -29,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -49,6 +51,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Autowired
     private UserInfoService userInfoService;
+
+    @Autowired
+    private ChatService chatService;
 
 //    @Autowired
 //    private ShopClient shopClient;
@@ -290,6 +295,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         boolean update = updateById(user);
         tokenKey = request.getHeader("authorization");
         saveUserMsg(user, tokenKey);
+        String key = CHAT_LIST_KEY + user.getId();
+        stringRedisTemplate.delete(key);
         return Result.ok(update);
     }
 
@@ -347,21 +354,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public Result queryUserByCondition(String condition) {
         log.info("查询条件:" + condition);
-        User user = null;
+        List<User> users = null;
         if(!RegexUtils.isPhoneInvalid(condition)){
             log.info("手机号");
-            user = query().eq("phone", condition).one();
+            users = query().eq("phone", condition).list();
         }else if(!RegexUtils.isEmailInvalid(condition)){
             log.info("邮箱号");
-            user = query().eq("email", condition).one();
+            users = query().eq("email", condition).list();
         }else{
             log.info("昵称");
-            user = query().eq("nick_name", condition).one();
+            users = query().eq("nick_name", condition).list();
         }
-        log.info("查询结果:" + user);
-        UserDTO userDTO = new UserDTO();
-        BeanUtil.copyProperties(user, userDTO);
-        return Result.ok(userDTO);
+        log.info("查询结果:" + users);
+        List<UserDTO> userDTOs = new LinkedList<>();
+        for (User user : users) {
+            UserDTO userDTO = new UserDTO();
+            BeanUtil.copyProperties(user, userDTO);
+            userDTOs.add(userDTO);
+        }
+        return Result.ok(userDTOs);
     }
 
     private User createUserWithPhone(String phone) {

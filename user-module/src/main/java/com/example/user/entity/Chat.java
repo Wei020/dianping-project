@@ -17,15 +17,8 @@ public class Chat {
 
     private Long fromId;
 
-    private String fromNickname;
-
-    private String fromIcon;
 
     private Long toId;
-
-    private String toNickname;
-
-    private String toIcon;
 
     /*
     * 0:群聊

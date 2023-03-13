@@ -2,6 +2,7 @@ package com.example.user.controller;
 
 
 
+import com.example.user.dto.ChatDTO;
 import com.example.user.dto.Result;
 import com.example.user.entity.Chat;
 import com.example.user.entity.Message;
@@ -33,7 +34,7 @@ public class ChatController {
 
     @GetMapping("/myChats")
     public Result queryChats(@RequestParam("id") Long id){
-        List<Chat> result = chatService.queryChats(id);
+        List<ChatDTO> result = chatService.queryChats(id);
         return Result.ok(result);
     }
 
