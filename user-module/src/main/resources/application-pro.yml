@@ -36,18 +36,18 @@ spring:
     password: wjjdakiohhvlbcea
     port: 465
     protocol: smtp
-      properties:
-        mail:
-          smtp:
-            auth: true
-            starttls:
-              enable: true
-              required: true
-            ssl:
-              enable: true
-              socketFactory:
-                port: 465
-                class: javax.net.ssl.SSLSocketFactory
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            enable: true
+            socketFactory:
+              port: 465
+              class: javax.net.ssl.SSLSocketFactory
   servlet:
     multipart:
       max-file-size: 30MB
