@@ -12,6 +12,8 @@ spring:
   cloud:
     nacos:
       server-addr: 120.79.211.228:8848
+      discovery:
+        namespace: dev
   redis:
     host: 120.79.211.228
     port: 6379
