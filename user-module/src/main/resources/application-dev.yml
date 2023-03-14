@@ -13,7 +13,7 @@ spring:
     nacos:
       server-addr: 8.130.51.5:8848
   redis:
-    host: 8.130.51.5
+    host: 120.79.211.228
     port: 6379
     password: 123321
     lettuce:
@@ -25,7 +25,7 @@ spring:
   jackson:
     default-property-inclusion: non_null # JSON处理时忽略非空字段
   rabbitmq:
-    host: 8.130.51.5
+    host: 120.79.211.228
     port: 5672
     username: wei
     password: 123321

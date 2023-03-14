@@ -6,14 +6,14 @@ spring:
     name: blogservice
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/dp_pojo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://120.79.211.228:3306/dp_pojo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: 123321
   cloud:
     nacos:
-      server-addr: localhost:8848
+      server-addr: 120.79.211.228:8848
   redis:
-    host: localhost
+    host: 120.79.211.228
     port: 6379
     password: 123321
     lettuce:
@@ -25,7 +25,7 @@ spring:
   jackson:
     default-property-inclusion: non_null # JSON处理时忽略非空字段
   rabbitmq:
-    host: localhost
+    host: 120.79.211.228
     port: 5672
     username: wei
     password: 123321
