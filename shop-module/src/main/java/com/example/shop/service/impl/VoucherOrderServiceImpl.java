@@ -43,8 +43,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
-    @Autowired
-    private RedissonClient redissonClient;
+//    @Autowired
+//    private RedissonClient redissonClient;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -69,35 +69,35 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private void createVoucherOrder(VoucherOrder order) {
     //        一人一单判断，兜底方案，理论上不会有问题
         Long userId = order.getUserId();
-//        创建锁对象
-        RLock redisLock = redissonClient.getLock("lock:order:" + userId);
-        boolean isLock = redisLock.tryLock();//空参，失败直接结束，参数：获取锁的最大等待时间、锁自动释放时间、时间单位
-        if (!isLock) {
-//            获取锁失败
+////        创建锁对象
+//        RLock redisLock = redissonClient.getLock("lock:order:" + userId);
+//        boolean isLock = redisLock.tryLock();//空参，失败直接结束，参数：获取锁的最大等待时间、锁自动释放时间、时间单位
+//        if (!isLock) {
+////            获取锁失败
+//            log.error("不允许重复下单");
+//            return;
+//        }
+//        try {
+        Long voucherId = order.getVoucherId();
+        int count = query().eq("user_id", userId).eq("voucher_id", voucherId).count();
+        if(count > 0) {
             log.error("不允许重复下单");
             return;
         }
-        try {
-            Long voucherId = order.getVoucherId();
-            int count = query().eq("user_id", userId).eq("voucher_id", voucherId).count();
-            if(count > 0) {
-                log.error("不允许重复下单");
-                return;
-            }
 //        扣减库存，乐观锁
-            boolean success = seckillVoucherService.update()
-                    .setSql("stock = stock - 1")
-                    .eq("voucher_id", voucherId)
-                    .gt("stock",0)//大于0就能执行
-                    .update();
-            if(!success){
-                log.error("库存不足");
-                return;
-            }
-            save(order);
-        } finally {
-            redisLock.unlock();
+        boolean success = seckillVoucherService.update()
+                .setSql("stock = stock - 1")
+                .eq("voucher_id", voucherId)
+                .gt("stock",0)//大于0就能执行
+                .update();
+        if(!success){
+            log.error("库存不足");
+            return;
         }
+        save(order);
+//        } finally {
+//            redisLock.unlock();
+//        }
     }
 
     @Override
