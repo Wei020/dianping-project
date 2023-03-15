@@ -6,9 +6,9 @@ spring:
     name: shopservice
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/dp_pojo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://120.79.211.228:3306/dp_pojo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
-    password: ww20010208
+    password: 123321
   cloud:
     nacos:
       server-addr: 120.79.211.228:8848
