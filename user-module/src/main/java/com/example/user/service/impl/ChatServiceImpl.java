@@ -7,10 +7,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.user.dto.ChatDTO;
 import com.example.user.dto.UserDTO;
 import com.example.user.entity.Chat;
+import com.example.user.entity.Group;
 import com.example.user.entity.Message;
 import com.example.user.entity.User;
 import com.example.user.mapper.ChatMapper;
 import com.example.user.service.ChatService;
+import com.example.user.service.GroupService;
 import com.example.user.service.MessageService;
 import com.example.user.service.UserService;
 import com.example.user.utils.RedisConstants;
@@ -37,6 +39,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private GroupService groupService;
+
 
     @Override
     public List<ChatDTO> queryChats(Long id) {
@@ -51,23 +56,26 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         UserDTO userDTO = UserHolder.getUser();
         for (Chat chat : list) {
             ChatDTO chatDTO = BeanUtil.copyProperties(chat, ChatDTO.class);
-            if(Objects.equals(chat.getFromId(), userDTO.getId())){
+            if(chat.getType() == 0){
                 chatDTO.setFromIcon(userDTO.getIcon());
                 chatDTO.setFromNickname(userDTO.getNickName());
-            }else {
-                User user = userService.query().eq("id", chat.getFromId()).one();
-                chatDTO.setFromIcon(user.getIcon());
-                chatDTO.setFromNickname(user.getNickName());
-            }
-            if(Objects.equals(chat.getToId(), userDTO.getId())){
-                chatDTO.setToIcon(userDTO.getIcon());
-                chatDTO.setToNickname(userDTO.getNickName());
-            }else {
-                User user = userService.query().eq("id", chat.getToId()).one();
-                if(null == user){
-                    chatDTO.setToIcon("");
-                    chatDTO.setToNickname("群聊");
-                }else{
+                Group group = groupService.getById(chat.getToId());
+                chatDTO.setToNickname(group.getName());
+                chatDTO.setToIcon(group.getIcon());
+            }else if(chat.getType() == 1){
+                if(Objects.equals(chat.getFromId(), userDTO.getId())){
+                    chatDTO.setFromIcon(userDTO.getIcon());
+                    chatDTO.setFromNickname(userDTO.getNickName());
+                }else {
+                    User user = userService.query().eq("id", chat.getFromId()).one();
+                    chatDTO.setFromIcon(user.getIcon());
+                    chatDTO.setFromNickname(user.getNickName());
+                }
+                if(Objects.equals(chat.getToId(), userDTO.getId())){
+                    chatDTO.setToIcon(userDTO.getIcon());
+                    chatDTO.setToNickname(userDTO.getNickName());
+                }else {
+                    User user = userService.query().eq("id", chat.getToId()).one();
                     chatDTO.setToIcon(user.getIcon());
                     chatDTO.setToNickname(user.getNickName());
                 }
@@ -92,15 +100,17 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
     }
 
     @Override
-    public Chat makeChat(Chat chat) {
+    public Chat makeChat(Chat chat, boolean flag) {
         Long fromId = chat.getFromId();
         Long toId = chat.getToId();
-        Chat chat1 = query().eq("from_id", fromId).eq("to_id", toId).one();
-        Chat chat2 = query().eq("from_id", toId).eq("to_id", fromId).one();
-        if(null != chat1)
-            return chat1;
-        if(null != chat2)
-            return chat2;
+        if(flag){
+            Chat chat1 = query().eq("from_id", fromId).eq("to_id", toId).one();
+            Chat chat2 = query().eq("from_id", toId).eq("to_id", fromId).one();
+            if(null != chat1)
+                return chat1;
+            if(null != chat2)
+                return chat2;
+        }
         String key1 = RedisConstants.CHAT_LIST_KEY + fromId;
         String key2 = RedisConstants.CHAT_LIST_KEY + toId;
         stringRedisTemplate.delete(key1);
@@ -108,5 +118,25 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         save(chat);
         log.info("id为:" + chat.getId());
         return chat;
+    }
+
+    @Override
+    public ChatDTO makeGroup(Group group) {
+        boolean save = groupService.save(group);
+        if(save){
+            Chat chat = new Chat();
+            chat.setType(0);
+            chat.setFromId(group.getCreateId());
+            chat.setToId(group.getId());
+            Chat res = makeChat(chat, false);
+            ChatDTO chatDTO = BeanUtil.copyProperties(res, ChatDTO.class);
+            chatDTO.setToNickname(group.getName());
+            chatDTO.setToIcon(group.getIcon());
+            UserDTO userDTO = UserHolder.getUser();
+            chatDTO.setFromNickname(userDTO.getNickName());
+            chatDTO.setFromIcon(userDTO.getIcon());
+            return chatDTO;
+        }
+        return null;
     }
 }

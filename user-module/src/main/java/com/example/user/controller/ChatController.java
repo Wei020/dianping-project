@@ -5,6 +5,7 @@ package com.example.user.controller;
 import com.example.user.dto.ChatDTO;
 import com.example.user.dto.Result;
 import com.example.user.entity.Chat;
+import com.example.user.entity.Group;
 import com.example.user.entity.Message;
 import com.example.user.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,13 @@ public class ChatController {
 
     @PostMapping("/make")
     public Result makeChat(@RequestBody Chat chat){
-        Chat res = chatService.makeChat(chat);
+        Chat res = chatService.makeChat(chat, true);
+        return Result.ok(res);
+    }
+
+    @PostMapping("/makeGroup")
+    public Result makeGroup(@RequestBody Group group){
+        ChatDTO res = chatService.makeGroup(group);
         return Result.ok(res);
     }
 }

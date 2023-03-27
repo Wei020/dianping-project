@@ -9,21 +9,18 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)  //调用set方法后返回当前对象
-@TableName("tb_chat")
-public class Chat {
+@TableName("tb_group")
+public class Group {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long id;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private Long fromId;
+    private String name;
+
+    private String icon;
+
+    private Integer number;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private Long toId;
-
-    /*
-    * 0:群聊
-    * 1:私聊
-    * */
-    private Integer type;
+    private Long createId;
 }
