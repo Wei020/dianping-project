@@ -51,9 +51,4 @@ public class ChatController {
         return Result.ok(res);
     }
 
-    @PostMapping("/makeGroup")
-    public Result makeGroup(@RequestBody Group group){
-        ChatDTO res = chatService.makeGroup(group);
-        return Result.ok(res);
-    }
 }

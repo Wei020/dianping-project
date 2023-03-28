@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.user.dto.ChatDTO;
+import com.example.user.dto.Result;
 import com.example.user.dto.UserDTO;
 import com.example.user.entity.Chat;
 import com.example.user.entity.Group;
@@ -16,6 +17,7 @@ import com.example.user.service.GroupService;
 import com.example.user.service.MessageService;
 import com.example.user.service.UserService;
 import com.example.user.utils.RedisConstants;
+import com.example.user.utils.RegexUtils;
 import com.example.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,25 +120,5 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         save(chat);
         log.info("id为:" + chat.getId());
         return chat;
-    }
-
-    @Override
-    public ChatDTO makeGroup(Group group) {
-        boolean save = groupService.save(group);
-        if(save){
-            Chat chat = new Chat();
-            chat.setType(0);
-            chat.setFromId(group.getCreateId());
-            chat.setToId(group.getId());
-            Chat res = makeChat(chat, false);
-            ChatDTO chatDTO = BeanUtil.copyProperties(res, ChatDTO.class);
-            chatDTO.setToNickname(group.getName());
-            chatDTO.setToIcon(group.getIcon());
-            UserDTO userDTO = UserHolder.getUser();
-            chatDTO.setFromNickname(userDTO.getNickName());
-            chatDTO.setFromIcon(userDTO.getIcon());
-            return chatDTO;
-        }
-        return null;
     }
 }

@@ -363,7 +363,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             users = query().eq("email", condition).list();
         }else{
             log.info("昵称");
-            users = query().eq("nick_name", condition).list();
+            users = query().like("nick_name", condition).list();
         }
         log.info("查询结果:" + users);
         List<UserDTO> userDTOs = new LinkedList<>();
