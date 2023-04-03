@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class AuthorizeFilter implements GlobalFilter, Ordered {
 
     private static final String LOGIN_USER_KEY = "login:token:";
-    private static final long LOGIN_USER_TTL = 2L;
+    private static final long LOGIN_USER_TTL = 20L;
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
     @Autowired

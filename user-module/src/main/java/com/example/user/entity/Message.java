@@ -25,6 +25,7 @@ public class Message {
     /*
     * 0:文字
     * 1:文件
+    * 2:加群申请
     * */
     private Integer type;
 

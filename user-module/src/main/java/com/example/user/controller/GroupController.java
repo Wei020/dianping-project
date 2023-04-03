@@ -2,6 +2,7 @@ package com.example.user.controller;
 
 import com.example.user.dto.ChatDTO;
 import com.example.user.dto.Result;
+import com.example.user.dto.UserDTO;
 import com.example.user.entity.Chat;
 import com.example.user.entity.Group;
 import com.example.user.service.GroupService;
@@ -41,5 +42,17 @@ public class GroupController {
     public Result queryFollowed(@PathVariable("id") Long id){
         Chat chat = groupService.queryFollowed(id);
         return Result.ok(chat);
+    }
+
+    @GetMapping("/five/{id}")
+    public Result queryFiveNumbers(@PathVariable("id") Long id){
+        List<UserDTO> list = groupService.queryFiveNumbers(id);
+        return Result.ok(list);
+    }
+
+    @PostMapping("/follow/{id}")
+    public Result followGroup(@PathVariable("id") Long id){
+        groupService.followGroup(id);
+        return Result.ok();
     }
 }

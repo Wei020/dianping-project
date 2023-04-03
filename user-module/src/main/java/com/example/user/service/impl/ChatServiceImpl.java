@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.user.dto.ChatDTO;
+import com.example.user.dto.MessageDTO;
 import com.example.user.dto.Result;
 import com.example.user.dto.UserDTO;
 import com.example.user.entity.Chat;
@@ -53,7 +54,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
             List<ChatDTO> list = JSONArray.parseArray(s, ChatDTO.class);
             return list;
         }
-        List<Chat> list = query().eq("from_id", id).or().eq("to_id", id).list();
+        List<Chat> list = query().eq("from_id", id).or().eq("to_id", id).eq("state", 1).list();
         List<ChatDTO> res = new LinkedList<>();
         UserDTO userDTO = UserHolder.getUser();
         for (Chat chat : list) {
@@ -106,8 +107,8 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         Long fromId = chat.getFromId();
         Long toId = chat.getToId();
         if(flag){
-            Chat chat1 = query().eq("from_id", fromId).eq("to_id", toId).one();
-            Chat chat2 = query().eq("from_id", toId).eq("to_id", fromId).one();
+            Chat chat1 = query().eq("from_id", fromId).eq("to_id", toId).eq("state", 1).one();
+            Chat chat2 = query().eq("from_id", toId).eq("to_id", fromId).eq("state", 1).one();
             if(null != chat1)
                 return chat1;
             if(null != chat2)
@@ -120,5 +121,16 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         save(chat);
         log.info("id为:" + chat.getId());
         return chat;
+    }
+
+    @Override
+    public List<MessageDTO> queryNotice(Long id) {
+        List<Message> list = messageService.query().eq("to_id", id).eq("type", 2).list();
+        List<MessageDTO> res = new LinkedList<>();
+        for (Message message : list) {
+            MessageDTO messageDTO = new MessageDTO();
+            BeanUtil.copyProperties(message, messageDTO);
+        }
+        return null;
     }
 }

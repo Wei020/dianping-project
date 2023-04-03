@@ -19,6 +19,8 @@ public class Group {
 
     private String icon;
 
+    private String introduce;
+
     private Integer number;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)

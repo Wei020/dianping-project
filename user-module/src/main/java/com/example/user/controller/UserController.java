@@ -25,7 +25,7 @@ public class UserController {
 
 
     @PostMapping("/phoned")
-    public Result sendPhoneCode(@RequestParam("phone") String phone) {
+    public synchronized Result sendPhoneCode(@RequestParam("phone") String phone) {
         return userService.sendPhoneCode(phone);
     }
 

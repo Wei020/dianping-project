@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Slf4j
 public class WsController {
     @Autowired
-    SimpMessagingTemplate simpMessagingTemplate;
+    private SimpMessagingTemplate simpMessagingTemplate;
 
     @Autowired
     private MessageService messageService;
