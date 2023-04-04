@@ -3,6 +3,7 @@ package com.example.user.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.user.dto.ChatDTO;
 import com.example.user.dto.MessageDTO;
+import com.example.user.dto.NoticeDTO;
 import com.example.user.dto.Result;
 import com.example.user.entity.Chat;
 import com.example.user.entity.Group;
@@ -17,6 +18,4 @@ public interface ChatService extends IService<Chat> {
     List<Message> queryByChatId(Long chatId);
 
     Chat makeChat(Chat chat, boolean flag);
-
-    List<MessageDTO> queryNotice(Long id);
 }

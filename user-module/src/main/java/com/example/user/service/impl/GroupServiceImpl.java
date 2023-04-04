@@ -6,16 +6,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.user.dto.ChatDTO;
 import com.example.user.dto.MessageDTO;
+import com.example.user.dto.NoticeDTO;
 import com.example.user.dto.UserDTO;
-import com.example.user.entity.Chat;
-import com.example.user.entity.Group;
-import com.example.user.entity.Message;
-import com.example.user.entity.User;
+import com.example.user.entity.*;
 import com.example.user.mapper.GroupMapper;
-import com.example.user.service.ChatService;
-import com.example.user.service.GroupService;
-import com.example.user.service.MessageService;
-import com.example.user.service.UserService;
+import com.example.user.service.*;
 import com.example.user.utils.RedisConstants;
 import com.example.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +33,9 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private NoticeService noticeService;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -105,26 +103,20 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     @Override
     public void followGroup(Long id) {
         UserDTO user = UserHolder.getUser();
-//        Chat chat = new Chat();
-//        chat.setState(0);
-//        chat.setType(0);
-//        chat.setFromId(userId);
-//        chat.setToId(id);
-//        chatService.save(chat);
         Group group = getById(id);
         Long createId = group.getCreateId();
-        Message message = new Message();
-        message.setSendTime(LocalDateTime.now());
-        message.setType(2);
-        message.setFromId(user.getId());
-        message.setToId(createId);
-        message.setContent(id.toString());
-        messageService.save(message);
-        MessageDTO messageDTO = new MessageDTO();
-        BeanUtil.copyProperties(message, messageDTO);
-        messageDTO.setFromNickname(user.getNickName());
-        messageDTO.setFromIcon(user.getIcon());
-        messageDTO.setToNickname(group.getName());
-        simpMessagingTemplate.convertAndSendToUser(createId.toString(), "/chat", messageDTO);
+        Notice notice = new Notice();
+        notice.setFromId(user.getId());
+        notice.setType(0);
+        notice.setToId(createId);
+        notice.setGroupId(id);
+        notice.setContent(group.getName());
+        notice.setSendTime(LocalDateTime.now());
+        noticeService.save(notice);
+        NoticeDTO noticeDTO = new NoticeDTO();
+        BeanUtil.copyProperties(notice, noticeDTO);
+        noticeDTO.setFromNickname(user.getNickName());
+        noticeDTO.setFromIcon(user.getIcon());
+        simpMessagingTemplate.convertAndSendToUser(createId.toString(), "/notice", noticeDTO);
     }
 }

@@ -2,8 +2,10 @@ package com.example.user.controller;
 
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.example.user.dto.ChatDTO;
 import com.example.user.dto.MessageDTO;
+import com.example.user.dto.NoticeDTO;
 import com.example.user.dto.Result;
 import com.example.user.entity.Chat;
 import com.example.user.entity.Group;
@@ -49,12 +51,6 @@ public class ChatController {
     @PostMapping("/make")
     public Result makeChat(@RequestBody Chat chat){
         Chat res = chatService.makeChat(chat, true);
-        return Result.ok(res);
-    }
-
-    @GetMapping("/queryNotice")
-    public Result queryNotice(@RequestParam("id") Long id){
-        List<MessageDTO> res = chatService.queryNotice(id);
         return Result.ok(res);
     }
 

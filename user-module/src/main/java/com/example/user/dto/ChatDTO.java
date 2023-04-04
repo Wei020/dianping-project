@@ -9,12 +9,14 @@ public class ChatDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long id;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long fromId;
 
     private String fromNickname;
 
     private String fromIcon;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long toId;
 
     private String toNickname;
