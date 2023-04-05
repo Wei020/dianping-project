@@ -32,4 +32,6 @@ public class Chat {
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
+
+    private Integer deleteFlag;
 }

@@ -36,4 +36,6 @@ public class Message {
 
 
     private Long chatId;
+
+    private Integer deleteFlag;
 }

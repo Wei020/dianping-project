@@ -3,6 +3,7 @@ package com.example.user.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.http.useragent.UserAgentUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.user.dto.ChatDTO;
 import com.example.user.dto.MessageDTO;
@@ -75,7 +76,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     @Override
     public Chat queryFollowed(Long id) {
         Long userId = UserHolder.getUser().getId();
-        Chat chat = chatService.query().eq("from_id", userId).eq("to_id", id).one();
+        Chat chat = chatService.query().eq("from_id", userId).eq("to_id", id).eq("delete_flag", 0).one();
         return chat;
     }
 
@@ -87,7 +88,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
             List<UserDTO> res = JSONObject.parseArray(s, UserDTO.class);
             return res;
         }
-        List<Chat> list = chatService.query().eq("to_id", id).orderByAsc("create_time").last("limit 0, 5").list();
+        List<Chat> list = chatService.query().eq("to_id", id).eq("delete_flag", 0).orderByAsc("create_time").last("limit 0, 5").list();
         List<UserDTO> res = new LinkedList<>();
         for (Chat chat : list) {
             UserDTO userDTO = new UserDTO();
@@ -105,6 +106,8 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
         UserDTO user = UserHolder.getUser();
         Group group = getById(id);
         Long createId = group.getCreateId();
+        String noticeKey1 = RedisConstants.NOTICE_LIST_KEY + createId;
+        String noticeKey2 = RedisConstants.NOTICE_LIST_KEY + user.getId();
         Notice notice = new Notice();
         notice.setFromId(user.getId());
         notice.setType(0);
@@ -118,5 +121,34 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
         noticeDTO.setFromNickname(user.getNickName());
         noticeDTO.setFromIcon(user.getIcon());
         simpMessagingTemplate.convertAndSendToUser(createId.toString(), "/notice", noticeDTO);
+        stringRedisTemplate.delete(noticeKey1);
+        stringRedisTemplate.delete(noticeKey2);
+    }
+
+    @Override
+    public Group outGroup(Long id) {
+        UserDTO user = UserHolder.getUser();
+        String chatKey = RedisConstants.CHAT_LIST_KEY + user.getId();
+        UpdateWrapper<Chat> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("from_id", user.getId());
+        updateWrapper.eq("to_id", id);
+        updateWrapper.set("delete_flag", 1);
+        chatService.update(updateWrapper);
+        stringRedisTemplate.delete(chatKey);
+//        Thread thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                UpdateWrapper<Message> updateWrapper1 = new UpdateWrapper<>();
+//                updateWrapper1.eq("from_id", user.getId());
+//                updateWrapper1.eq("to_id", id);
+//                updateWrapper1.set("delete_flag", 1);
+//                messageService.update(updateWrapper1);
+//            }
+//        });
+//        thread.start();
+        Group group = getById(id);
+        group.setNumber(group.getNumber() - 1);
+        updateById(group);
+        return group;
     }
 }

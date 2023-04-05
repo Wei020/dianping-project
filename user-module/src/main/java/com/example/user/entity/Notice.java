@@ -37,6 +37,8 @@ public class Notice {
 
     private LocalDateTime sendTime;
 
+    private LocalDateTime doTime;
+
     /*
     * 0: 未处理
     * 1: 已通过

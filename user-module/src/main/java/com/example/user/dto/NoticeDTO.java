@@ -30,6 +30,8 @@ public class NoticeDTO {
 
     private LocalDateTime sendTime;
 
+    private LocalDateTime doTime;
+
     private String fromNickname;
 
     private String fromIcon;

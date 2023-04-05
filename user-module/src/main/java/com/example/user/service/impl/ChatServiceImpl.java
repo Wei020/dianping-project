@@ -45,7 +45,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
             List<ChatDTO> list = JSONArray.parseArray(s, ChatDTO.class);
             return list;
         }
-        List<Chat> list = query().eq("from_id", id).or().eq("to_id", id).list();
+        List<Chat> list = query().eq("delete_flag", 0).eq("from_id", id).or().eq("to_id", id).list();
         List<ChatDTO> res = new LinkedList<>();
         UserDTO userDTO = UserHolder.getUser();
         for (Chat chat : list) {
@@ -98,8 +98,8 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         Long fromId = chat.getFromId();
         Long toId = chat.getToId();
         if(flag){
-            Chat chat1 = query().eq("from_id", fromId).eq("to_id", toId).one();
-            Chat chat2 = query().eq("from_id", toId).eq("to_id", fromId).one();
+            Chat chat1 = query().eq("from_id", fromId).eq("to_id", toId).eq("delete_flag", 0).one();
+            Chat chat2 = query().eq("from_id", toId).eq("to_id", fromId).eq("delete_flag", 0).one();
             if(null != chat1)
                 return chat1;
             if(null != chat2)

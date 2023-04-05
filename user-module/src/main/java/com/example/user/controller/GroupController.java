@@ -55,4 +55,10 @@ public class GroupController {
         groupService.followGroup(id);
         return Result.ok();
     }
+
+    @PostMapping("/out/{id}")
+    public Result outGroup(@PathVariable("id") Long id){
+        Group group = groupService.outGroup(id);
+        return Result.ok(group);
+    }
 }
