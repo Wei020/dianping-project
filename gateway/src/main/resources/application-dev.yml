@@ -14,7 +14,7 @@ spring:
         - id: user-service
           uri: lb://userservice
           predicates:
-            - Path=/user/**, /upload/**, /chat/**, /group/**, /notice/**
+            - Path=/user/**, /upload/**
         - id: shop-service
           uri: lb://shopservice
           predicates:
@@ -23,6 +23,10 @@ spring:
           uri: lb://blogservice
           predicates:
             - Path=/follow/**, /blog/**, /blog-comments/**
+        - id: chat-service
+          uri: lb://chatservice
+          predicates:
+            - Path=/chat/**, /group/**, /notice/**
   redis:
     host: 8.130.29.46
     port: 6379

@@ -5,7 +5,6 @@ import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.feign.dto.UserListDTO;
@@ -15,7 +14,6 @@ import com.example.user.dto.UserDTO;
 import com.example.user.entity.User;
 import com.example.user.entity.UserInfo;
 import com.example.user.mapper.UserMapper;
-import com.example.user.service.ChatService;
 import com.example.user.service.SendMailService;
 import com.example.user.service.UserInfoService;
 import com.example.user.service.UserService;
@@ -52,8 +50,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private UserInfoService userInfoService;
 
-    @Autowired
-    private ChatService chatService;
 
 //    @Autowired
 //    private ShopClient shopClient;

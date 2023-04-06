@@ -9,6 +9,7 @@
         <module>feign-api</module>
         <module>gateway</module>
         <module>blog-module</module>
+        <module>chat-module</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
