@@ -2,10 +2,12 @@ package com.example.blog.controller;
 
 
 import com.example.blog.dto.Result;
+import com.example.blog.dto.UserDTO;
 import com.example.blog.service.FollowService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @RestController
 @RequestMapping("/follow")
@@ -27,6 +29,12 @@ public class FollowController {
     @GetMapping("/common/{id}")
     public Result followCommons(@PathVariable("id") Long id){
         return followService.followCommons(id);
+    }
+
+    @PostMapping("/fans")
+    public Result queryFans(){
+        List<UserDTO> res = followService.queryFans();
+        return Result.ok(res);
     }
 
 }

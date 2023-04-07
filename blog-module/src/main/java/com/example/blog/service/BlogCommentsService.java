@@ -11,4 +11,7 @@ public interface BlogCommentsService extends IService<BlogComment> {
     List<CommentDTO> queryByBlogId(Long id);
 
     CommentDTO addComment(BlogComment blogComment);
+
+    List<CommentDTO> queryMyComments();
+
 }

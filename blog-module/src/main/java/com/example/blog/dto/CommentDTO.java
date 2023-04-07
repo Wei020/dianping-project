@@ -1,5 +1,6 @@
 package com.example.blog.dto;
 
+import com.example.blog.entity.Blog;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
@@ -23,6 +24,9 @@ public class CommentDTO {
      * 探店id
      */
     private Long blogId;
+
+
+    private Blog blog;
 
     /**
      * 关联的1级评论id，如果是一级评论，则值为0

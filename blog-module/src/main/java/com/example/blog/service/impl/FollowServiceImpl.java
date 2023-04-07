@@ -9,6 +9,7 @@ import com.example.blog.dto.UserDTO;
 import com.example.blog.entity.Follow;
 import com.example.blog.mapper.FollowMapper;
 import com.example.blog.service.FollowService;
+import com.example.blog.utils.RedisConstants;
 import com.example.blog.utils.UserHolder;
 import com.example.feign.clients.UserClient;
 import com.example.feign.dto.UserListDTO;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -87,5 +89,29 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
         List<UserDTO> userDTOS = JSONObject.parseArray(JSONObject.toJSONString(object), UserDTO.class);
         log.info("转换结果:" + userDTOS);
         return Result.ok(userDTOS);
+    }
+
+    @Override
+    public List<UserDTO> queryFans() {
+        Long id = UserHolder.getUser().getId();
+        String key = RedisConstants.USER_FANS_KEY + id;
+        String s = stringRedisTemplate.opsForValue().get(key);
+        if(null != s){
+            log.info(s);
+            return JSONObject.parseArray(s, UserDTO.class);
+        }
+        List<Follow> follows = query().eq("follow_user_id", id).list();
+        List<UserDTO> res = new LinkedList<>();
+        for (Follow follow : follows) {
+            Object data = userClient.queryUserById(follow.getUserId()).getData();
+            if(null == data){
+                log.info("RPC调用失败！");
+                continue;
+            }
+            UserDTO userDTO = JSONObject.parseObject(JSONObject.toJSONString(data), UserDTO.class);
+            res.add(userDTO);
+        }
+        stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(res), RedisConstants.EXPIRE_TIME);
+        return res;
     }
 }

@@ -298,9 +298,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Result infoEdit(UserInfo userInfo) {
-        UpdateWrapper<UserInfo> wrapper = new UpdateWrapper<>();
-        wrapper.eq("user_id", userInfo.getUserId());
-        boolean update = userInfoService.saveOrUpdate(userInfo, wrapper);
+        boolean update = false;
+        if(null == userInfo.getUserId()){
+            userInfo.setUserId(UserHolder.getUser().getId());
+            log.info("新增数据:" + userInfo);
+        }
+        update = userInfoService.saveOrUpdate(userInfo);
         return Result.ok(update);
     }
 

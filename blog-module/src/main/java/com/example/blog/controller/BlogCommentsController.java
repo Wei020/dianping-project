@@ -29,4 +29,10 @@ public class BlogCommentsController {
         return Result.ok(list);
     }
 
+    @PostMapping("/comments")
+    public Result queryMyComments(){
+        List<CommentDTO> list = blogCommentsService.queryMyComments();
+        return Result.ok(list);
+    }
+
 }
