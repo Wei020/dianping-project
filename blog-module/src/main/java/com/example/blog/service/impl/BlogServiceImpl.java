@@ -104,20 +104,25 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 //        判断当前用户是否已经点赞
         String key = BLOG_LIKED_KEY + id;
         Double score = stringRedisTemplate.opsForZSet().score(key, userId.toString());
+        Blog blog = getById(id);
         if(score == null){
             //        未点赞，加1
             boolean isSuccess = update().setSql("liked = liked + 1").eq("id", id).update();
             if(isSuccess){
                 stringRedisTemplate.opsForZSet().add(key, userId.toString(), System.currentTimeMillis());
+                blog.setIsLike(true);
+                blog.setLiked(blog.getLiked() + 1);
             }
         }else{
             //        点赞，减1
             boolean isSuccess = update().setSql("liked = liked - 1").eq("id", id).update();
             if(isSuccess){
                 stringRedisTemplate.opsForZSet().remove(key, userId.toString());
+                blog.setIsLike(false);
+                blog.setLiked(blog.getLiked() - 1);
             }
         }
-        return null;
+        return Result.ok(blog);
     }
 
 //    查询点赞top5
