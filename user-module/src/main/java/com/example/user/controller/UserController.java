@@ -91,6 +91,18 @@ public class UserController {
         return userService.infoEdit(userInfo);
     }
 
+    @PostMapping("/follow")
+    public Result followUser(@RequestParam("id") Long id, @RequestParam("followId") Long followId){
+        Boolean res =  userService.followUser(id, followId);
+        return Result.ok(res);
+    }
+
+    @PostMapping("/notFollow")
+    public Result notFollowUser(@RequestParam("id") Long id, @RequestParam("followId") Long followId){
+        Boolean res =  userService.notFollowUser(id, followId);
+        return Result.ok(res);
+    }
+
     @PostMapping("/list")
     public Result queryUserList(@RequestBody UserListDTO userListDTO){
         return userService.queryUserList(userListDTO);

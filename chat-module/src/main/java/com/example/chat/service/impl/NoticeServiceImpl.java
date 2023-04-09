@@ -18,6 +18,7 @@ import com.example.feign.dto.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,9 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
     private ChatService chatService;
 
     @Autowired
+    private SimpMessagingTemplate simpMessagingTemplate;
+
+    @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
     @Override
@@ -52,6 +56,8 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
         List<Notice> list = query().eq("to_id", id).or().eq("from_id", id).list();
         List<NoticeDTO> res = new LinkedList<>();
         for (Notice notice : list) {
+            if(notice.getType() == 2 && notice.getFromId() == id)
+                continue;
             NoticeDTO noticeDTO = new NoticeDTO();
             BeanUtil.copyProperties(notice, noticeDTO);
             Long fromId = notice.getFromId();
@@ -95,5 +101,16 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
         updateById(notice);
         stringRedisTemplate.delete(noticeKey1);
         stringRedisTemplate.delete(noticeKey2);
+    }
+
+    @Override
+    public void notice(NoticeDTO noticeDTO) {
+        noticeDTO.setSendTime(LocalDateTime.now());
+        Notice notice = BeanUtil.copyProperties(noticeDTO, Notice.class);
+        log.info("存入的notice:" + notice.toString());
+        boolean res = save(notice);
+        if(res){
+            simpMessagingTemplate.convertAndSendToUser(noticeDTO.getToId().toString(), "/notice", noticeDTO);
+        }
     }
 }

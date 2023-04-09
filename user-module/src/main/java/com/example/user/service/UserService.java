@@ -40,4 +40,8 @@ public interface UserService extends IService<User> {
     Result queryUserList(UserListDTO userListDTO);
 
     Result queryUserByCondition(String condition);
+
+    Boolean followUser(Long id, Long followId);
+
+    Boolean notFollowUser(Long id, Long followId);
 }

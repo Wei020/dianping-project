@@ -31,4 +31,10 @@ public class NoticeController {
         noticeService.doNotice(id, flag);
         return Result.ok();
     }
+
+    @PostMapping
+    public Result notice(@RequestBody NoticeDTO noticeDTO){
+        noticeService.notice(noticeDTO);
+        return Result.ok();
+    }
 }

@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -372,6 +374,49 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             userDTOs.add(userDTO);
         }
         return Result.ok(userDTOs);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Boolean followUser(Long id, Long followId) {
+        UserInfo userInfo = userInfoService.getById(id);
+        boolean flag1 = false;
+        boolean flag2 = false;
+        if(null == userInfo){
+            UserInfo userInfo1 = new UserInfo();
+            userInfo1.setUserId(id);
+            userInfo1.setFollowee(1);
+            flag1 = userInfoService.save(userInfo1);
+        }else {
+            userInfo.setFollowee(userInfo.getFollowee() + 1);
+            flag1 = userInfoService.updateById(userInfo);
+        }
+        UserInfo userInfo1 = userInfoService.getById(followId);
+        if(null == userInfo1){
+            UserInfo userInfo2 = new UserInfo();
+            userInfo2.setUserId(followId);
+            userInfo2.setFans(1);
+            flag2 = userInfoService.save(userInfo2);
+        }else {
+            userInfo1.setFans(userInfo1.getFans() + 1);
+            flag2 = userInfoService.updateById(userInfo1);
+        }
+
+        return flag1 && flag2;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Boolean notFollowUser(Long id, Long followId) {
+        UserInfo userInfo = userInfoService.getById(id);
+        boolean flag1 = false;
+        boolean flag2 = false;
+        userInfo.setFollowee(userInfo.getFollowee() - 1);
+        flag1 = userInfoService.updateById(userInfo);
+        UserInfo userInfo1 = userInfoService.getById(followId);
+        userInfo1.setFans(userInfo1.getFans() - 1);
+        flag2 = userInfoService.updateById(userInfo1);
+        return flag1 && flag2;
     }
 
     private User createUserWithPhone(String phone) {

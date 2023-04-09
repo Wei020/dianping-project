@@ -11,14 +11,18 @@ import com.example.blog.mapper.FollowMapper;
 import com.example.blog.service.FollowService;
 import com.example.blog.utils.RedisConstants;
 import com.example.blog.utils.UserHolder;
+import com.example.feign.clients.ChatClient;
 import com.example.feign.clients.UserClient;
+import com.example.feign.dto.NoticeDTO;
 import com.example.feign.dto.UserListDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,27 +39,43 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
     @Autowired
     private UserClient userClient;
 
+    @Autowired
+    private ChatClient chatClient;
+
+
     @Override
     public Result follow(Long followUserId, Boolean isFollow) {
-
-        Long userId = UserHolder.getUser().getId();
-        String key = "follows:" + userId;
+        UserDTO userDTO = UserHolder.getUser();
+        String key1 = "follows:" + userDTO.getId();
+        String key2 = RedisConstants.USER_FANS_KEY + followUserId;
 //        判断到底是关注还是取关
         if(isFollow){
             Follow follow = new Follow();
-            follow.setUserId(userId);
+            follow.setUserId(userDTO.getId());
             follow.setFollowUserId(followUserId);
             boolean isSuccess = save(follow);
             if(isSuccess){
-                stringRedisTemplate.opsForSet().add(key, followUserId.toString());
+                userClient.followUser(userDTO.getId(), followUserId);
+                stringRedisTemplate.opsForSet().add(key1, followUserId.toString());
+                stringRedisTemplate.delete(key2);
+                NoticeDTO noticeDTO = new NoticeDTO();
+                noticeDTO.setFromId(userDTO.getId());
+                noticeDTO.setFromIcon(userDTO.getIcon());
+                noticeDTO.setFromNickname(userDTO.getNickName());
+                noticeDTO.setToId(followUserId);
+                noticeDTO.setContent(userDTO.getNickName() + "关注了你");
+                noticeDTO.setType(2);
+                chatClient.notice(noticeDTO);
             }
         }else {
 //            取关
             boolean isSuccess = remove(new QueryWrapper<Follow>()
-                    .eq("user_id", userId)
+                    .eq("user_id", userDTO.getId())
                     .eq("follow_user_id", followUserId));
             if(isSuccess){
-                stringRedisTemplate.opsForSet().remove(key, followUserId.toString());
+                userClient.notFollowUser(userDTO.getId(), followUserId);
+                stringRedisTemplate.opsForSet().remove(key1, followUserId.toString());
+                stringRedisTemplate.delete(key2);
             }
         }
         return Result.ok();

@@ -25,6 +25,16 @@ public class UserClientFallbackFactory implements FallbackFactory<UserClient> {
                 return null;
             }
 
+            @Override
+            public Result followUser(Long id, Long followId) {
+                return null;
+            }
+
+            @Override
+            public Result notFollowUser(Long id, Long followId) {
+                return null;
+            }
+
         };
     }
 }

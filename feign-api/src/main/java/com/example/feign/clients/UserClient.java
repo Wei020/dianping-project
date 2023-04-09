@@ -18,5 +18,9 @@ public interface UserClient {
     @PostMapping("/user/list")
     Result queryUserList(@RequestBody UserListDTO userList);
 
+    @PostMapping("/user/follow")
+    Result followUser(@RequestParam("id") Long id, @RequestParam("followId") Long followId);
 
+    @PostMapping("/user/notFollow")
+    Result notFollowUser(@RequestParam("id") Long id, @RequestParam("followId") Long followId);
 }
