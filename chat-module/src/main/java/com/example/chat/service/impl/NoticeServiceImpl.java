@@ -56,7 +56,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
         List<Notice> list = query().eq("to_id", id).or().eq("from_id", id).list();
         List<NoticeDTO> res = new LinkedList<>();
         for (Notice notice : list) {
-            if(notice.getType() == 2 && notice.getFromId() == id)
+            if((notice.getType() == 2 || notice.getType() == 3) && notice.getFromId() == id)
                 continue;
             NoticeDTO noticeDTO = new NoticeDTO();
             BeanUtil.copyProperties(notice, noticeDTO);
@@ -105,12 +105,18 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
 
     @Override
     public void notice(NoticeDTO noticeDTO) {
+        String key1 = RedisConstants.NOTICE_LIST_KEY + noticeDTO.getToId();
+        String key2 = RedisConstants.NOTICE_LIST_KEY + noticeDTO.getFromId();
         noticeDTO.setSendTime(LocalDateTime.now());
         Notice notice = BeanUtil.copyProperties(noticeDTO, Notice.class);
         log.info("存入的notice:" + notice.toString());
         boolean res = save(notice);
         if(res){
             simpMessagingTemplate.convertAndSendToUser(noticeDTO.getToId().toString(), "/notice", noticeDTO);
+            stringRedisTemplate.delete(key1);
+            if(noticeDTO.getType() == 1 || noticeDTO.getType() == 0){
+                stringRedisTemplate.delete(key2);
+            }
         }
     }
 }

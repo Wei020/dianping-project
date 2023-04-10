@@ -12,7 +12,9 @@ import com.example.blog.service.BlogCommentsService;
 import com.example.blog.service.BlogService;
 import com.example.blog.utils.RedisConstants;
 import com.example.blog.utils.UserHolder;
+import com.example.feign.clients.ChatClient;
 import com.example.feign.clients.UserClient;
+import com.example.feign.dto.NoticeDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -35,6 +37,9 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+    @Autowired
+    private ChatClient chatClient;
+
     @Override
     public List<CommentDTO> queryByBlogId(Long id) {
         List<BlogComment> blogComments = query().eq("blog_id", id).list();
@@ -48,6 +53,16 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     @Override
     public CommentDTO addComment(BlogComment blogComment) {
         save(blogComment);
+        UserDTO userDTO = UserHolder.getUser();
+        NoticeDTO noticeDTO = new NoticeDTO();
+        Blog blog = blogService.getById(blogComment.getBlogId());
+        noticeDTO.setFromId(userDTO.getId());
+        noticeDTO.setFromNickname(userDTO.getNickName());
+        noticeDTO.setFromIcon(userDTO.getIcon());
+        noticeDTO.setType(3);
+        noticeDTO.setContent(userDTO.getNickName() + "评论了你的博客");
+        noticeDTO.setToId(blog.getUserId());
+        chatClient.notice(noticeDTO);
         return extracted(blogComment, false);
     }
 
