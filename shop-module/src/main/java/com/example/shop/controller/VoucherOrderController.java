@@ -20,6 +20,12 @@ public class VoucherOrderController {
         return voucherOrderService.seckillVoucher(voucherId);
     }
 
+    @PostMapping("/kill/{id}")
+    public Result killVoucher(@PathVariable("id") Long voucherId) {
+        Boolean res = voucherOrderService.killVoucher(voucherId);
+        return Result.ok(res);
+    }
+
     @GetMapping("/of/{id}")
     VoucherOrder findVoucherByUser(@PathVariable("id") Long id){
         return voucherOrderService.findVoucherByUser(id);

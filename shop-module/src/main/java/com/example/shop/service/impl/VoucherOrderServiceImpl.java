@@ -8,6 +8,7 @@ import com.example.shop.entity.VoucherOrder;
 import com.example.shop.mapper.VoucherOrderMapper;
 import com.example.shop.service.ISeckillVoucherService;
 import com.example.shop.service.IVoucherOrderService;
+import com.example.shop.utils.RedisConstants;
 import com.example.shop.utils.RedisIdWorker;
 import com.example.shop.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -131,6 +132,22 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     public VoucherOrder findVoucherByUser(Long id) {
         VoucherOrder voucherOrder = query().eq("user_id", id).one();
         return voucherOrder;
+    }
+
+    @Override
+    public Boolean killVoucher(Long voucherId) {
+        Long userId = UserHolder.getUser().getId();
+        long orderId = redisIdWorker.nextId("order");
+        VoucherOrder voucherOrder = new VoucherOrder();
+        voucherOrder.setId(orderId);
+        voucherOrder.setUserId(userId);
+        voucherOrder.setVoucherId(voucherId);
+        String key = RedisConstants.USER_VOUCHER_LIST + userId;
+        boolean res = save(voucherOrder);
+        if (res){
+            stringRedisTemplate.delete(key);
+        }
+        return res;
     }
 
     public void SendMessageOrderQueue(VoucherOrder voucherOrder) throws InterruptedException {

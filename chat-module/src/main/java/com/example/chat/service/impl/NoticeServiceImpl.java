@@ -53,7 +53,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
             List<NoticeDTO> res = JSONObject.parseArray(s, NoticeDTO.class);
             return res;
         }
-        List<Notice> list = query().eq("to_id", id).or().eq("from_id", id).list();
+        List<Notice> list = query().eq("to_id", id).or().eq("from_id", id).orderByAsc("send_time").list();
         List<NoticeDTO> res = new LinkedList<>();
         for (Notice notice : list) {
             if((notice.getType() == 2 || notice.getType() == 3) && notice.getFromId() == id)
