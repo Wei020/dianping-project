@@ -25,6 +25,11 @@ public class VoucherDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long shopId;
 
+    /*
+    * 店铺名称
+    * */
+    private String shopName;
+
     /**
      * 代金券标题
      */

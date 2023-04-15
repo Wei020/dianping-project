@@ -1,7 +1,5 @@
 server:
   port: 8082
-  tomcat:
-    connection-timeout: 180000000
 spring:
   profiles: pro
   application:

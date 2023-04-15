@@ -10,7 +10,9 @@ import com.example.blog.entity.BlogComment;
 import com.example.blog.mapper.BlogCommentsMapper;
 import com.example.blog.service.BlogCommentsService;
 import com.example.blog.service.BlogService;
+import com.example.blog.utils.RabbitMQUtils;
 import com.example.blog.utils.RedisConstants;
+import com.example.blog.utils.ThreadPool;
 import com.example.blog.utils.UserHolder;
 import com.example.feign.clients.ChatClient;
 import com.example.feign.clients.UserClient;
@@ -19,9 +21,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 
 @Slf4j
@@ -40,6 +44,9 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     @Autowired
     private ChatClient chatClient;
 
+    @Autowired
+    private RabbitMQUtils rabbitMQUtils;
+
     @Override
     public List<CommentDTO> queryByBlogId(Long id) {
         List<BlogComment> blogComments = query().eq("blog_id", id).list();
@@ -50,20 +57,30 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
         return res;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public CommentDTO addComment(BlogComment blogComment) {
         save(blogComment);
+        ThreadPoolExecutor poolExecutor = ThreadPool.poolExecutor;
         UserDTO userDTO = UserHolder.getUser();
-        NoticeDTO noticeDTO = new NoticeDTO();
-        Blog blog = blogService.getById(blogComment.getBlogId());
-        noticeDTO.setFromId(userDTO.getId());
-        noticeDTO.setFromNickname(userDTO.getNickName());
-        noticeDTO.setFromIcon(userDTO.getIcon());
-        noticeDTO.setType(3);
-        noticeDTO.setContent(userDTO.getNickName() + "评论了你的博客");
-        noticeDTO.setToId(blog.getUserId());
-        noticeDTO.setBlogId(blog.getId());
-        chatClient.notice(noticeDTO);
+        poolExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                NoticeDTO noticeDTO = new NoticeDTO();
+                Blog blog = blogService.getById(blogComment.getBlogId());
+                noticeDTO.setFromId(userDTO.getId());
+                noticeDTO.setFromNickname(userDTO.getNickName());
+                noticeDTO.setFromIcon(userDTO.getIcon());
+                noticeDTO.setType(3);
+                noticeDTO.setContent(userDTO.getNickName() + "评论了你的博客");
+                noticeDTO.setToId(blog.getUserId());
+                noticeDTO.setBlogId(blog.getId());
+                blog.setComments(blog.getComments() + 1);
+                blogService.updateById(blog);
+//        chatClient.notice(noticeDTO);
+                rabbitMQUtils.SendMessageNoticeQueue(noticeDTO);
+            }
+        });
         return extracted(blogComment, false);
     }
 

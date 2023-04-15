@@ -148,6 +148,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     public Result saveBlog(Blog blog) {
         UserDTO user = UserHolder.getUser();
         blog.setUserId(user.getId());
+        blog.setComments(0);
+        blog.setLiked(0);
         // 保存探店博文
         boolean isSuccess = save(blog);
 //        查询笔记作者的所有粉丝

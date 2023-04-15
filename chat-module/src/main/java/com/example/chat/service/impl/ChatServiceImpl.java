@@ -50,7 +50,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
             List<ChatDTO> list = JSONArray.parseArray(s, ChatDTO.class);
             return list;
         }
-        List<Chat> list = query().eq("delete_flag", 0).eq("from_id", id).or().eq("to_id", id).list();
+        List<Chat> list = query().eq("delete_flag", 0).eq("from_id", id).or().eq("to_id", id).orderByDesc("update_time").list();
         List<ChatDTO> res = new LinkedList<>();
         UserDTO userDTO = UserHolder.getUser();
         for (Chat chat : list) {

@@ -6,10 +6,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.shop.dto.Result;
 import com.example.shop.dto.VoucherDTO;
 import com.example.shop.entity.SeckillVoucher;
+import com.example.shop.entity.Shop;
 import com.example.shop.entity.Voucher;
 import com.example.shop.entity.VoucherOrder;
 import com.example.shop.mapper.VoucherMapper;
 import com.example.shop.service.ISeckillVoucherService;
+import com.example.shop.service.IShopService;
 import com.example.shop.service.IVoucherOrderService;
 import com.example.shop.service.IVoucherService;
 import com.example.shop.utils.RedisConstants;
@@ -36,6 +38,9 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private IShopService shopService;
 
     @Override
     public Result queryVoucherOfShop(Long shopId) {
@@ -75,6 +80,8 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
             Voucher voucher = getById(order.getVoucherId());
             VoucherDTO voucherDTO = new VoucherDTO();
             BeanUtil.copyProperties(voucher, voucherDTO);
+            Shop shop = shopService.getById(voucher.getShopId());
+            voucherDTO.setShopName(shop.getName());
             if (voucher.getType() == 1){
                 SeckillVoucher seckillVoucher = seckillVoucherService.getById(voucher.getId());
                 voucherDTO.setBeginTime(seckillVoucher.getBeginTime());

@@ -1,7 +1,5 @@
 server:
   port: 8081
-  tomcat:
-    connection-timeout: 180000000
 spring:
   profiles: pro
   application:
@@ -54,7 +52,6 @@ spring:
     multipart:
       max-file-size: 30MB
       max-request-size: 30MB
-      location: /tmp/
 mybatis-plus:
   type-aliases-package: com.example.user.entity # 别名扫描包
 logging:
