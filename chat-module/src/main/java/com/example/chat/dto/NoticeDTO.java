@@ -3,10 +3,13 @@ package com.example.chat.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class NoticeDTO {
+public class NoticeDTO implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long Id;
@@ -19,6 +22,9 @@ public class NoticeDTO {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long groupId;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Long blogId;
 
     private String content;
 

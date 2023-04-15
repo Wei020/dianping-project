@@ -10,6 +10,7 @@ import com.example.shop.service.ISeckillVoucherService;
 import com.example.shop.service.IVoucherOrderService;
 import com.example.shop.utils.RedisConstants;
 import com.example.shop.utils.RedisIdWorker;
+import com.example.shop.utils.ThreadPool;
 import com.example.shop.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Service
@@ -120,11 +122,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         voucherOrder.setId(orderId);
         voucherOrder.setUserId(userId);
         voucherOrder.setVoucherId(voucherId);
-        try {
-            SendMessageOrderQueue(voucherOrder);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        //            SendMessageOrderQueue(voucherOrder);
+        ThreadPoolExecutor poolExecutor = ThreadPool.poolExecutor;
+        poolExecutor.execute(() -> createVoucherOrder(voucherOrder));
         return Result.ok(orderId);
     }
 

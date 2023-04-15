@@ -25,6 +25,7 @@ public class CommonConfig implements ApplicationContextAware {
                 rabbitTemplate.convertAndSend("order.direct", "order.add", message);
             }
         });
+
     }
 
 }

@@ -1,14 +1,15 @@
 package com.example.blog.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.blog.dto.FollowDTO;
 import com.example.blog.dto.Result;
 import com.example.blog.dto.UserDTO;
 import com.example.blog.entity.Follow;
 import com.example.blog.mapper.FollowMapper;
 import com.example.blog.service.FollowService;
+import com.example.blog.utils.RabbitMQUtils;
 import com.example.blog.utils.RedisConstants;
 import com.example.blog.utils.UserHolder;
 import com.example.feign.clients.ChatClient;
@@ -19,10 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,6 +41,9 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
     @Autowired
     private ChatClient chatClient;
 
+    @Autowired
+    private RabbitMQUtils rabbitMQUtils;
+
 
     @Override
     public Result follow(Long followUserId, Boolean isFollow) {
@@ -55,9 +57,11 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
             follow.setFollowUserId(followUserId);
             boolean isSuccess = save(follow);
             if(isSuccess){
-                userClient.followUser(userDTO.getId(), followUserId);
                 stringRedisTemplate.opsForSet().add(key1, followUserId.toString());
                 stringRedisTemplate.delete(key2);
+                FollowDTO followDTO = new FollowDTO(userDTO.getId(), followUserId, true);
+                rabbitMQUtils.SendMessageFollowQueue(followDTO);
+//                userClient.followUser(userDTO.getId(), followUserId);
                 NoticeDTO noticeDTO = new NoticeDTO();
                 noticeDTO.setFromId(userDTO.getId());
                 noticeDTO.setFromIcon(userDTO.getIcon());
@@ -65,7 +69,8 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
                 noticeDTO.setToId(followUserId);
                 noticeDTO.setContent(userDTO.getNickName() + "关注了你");
                 noticeDTO.setType(2);
-                chatClient.notice(noticeDTO);
+//                chatClient.notice(noticeDTO);
+                rabbitMQUtils.SendMessageNoticeQueue(noticeDTO);
             }
         }else {
 //            取关
@@ -73,9 +78,11 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
                     .eq("user_id", userDTO.getId())
                     .eq("follow_user_id", followUserId));
             if(isSuccess){
-                userClient.notFollowUser(userDTO.getId(), followUserId);
+//                userClient.notFollowUser(userDTO.getId(), followUserId);
                 stringRedisTemplate.opsForSet().remove(key1, followUserId.toString());
                 stringRedisTemplate.delete(key2);
+                FollowDTO followDTO = new FollowDTO(userDTO.getId(), followUserId, false);
+                rabbitMQUtils.SendMessageFollowQueue(followDTO);
             }
         }
         return Result.ok();

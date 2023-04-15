@@ -27,6 +27,9 @@ public class Notice {
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long groupId;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Long blogId;
+
     private String content;
 
     /*

@@ -62,6 +62,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
         noticeDTO.setType(3);
         noticeDTO.setContent(userDTO.getNickName() + "评论了你的博客");
         noticeDTO.setToId(blog.getUserId());
+        noticeDTO.setBlogId(blog.getId());
         chatClient.notice(noticeDTO);
         return extracted(blogComment, false);
     }
