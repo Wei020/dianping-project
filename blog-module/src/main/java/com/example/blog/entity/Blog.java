@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -23,15 +24,18 @@ public class Blog implements Serializable {
     /**
      * 主键
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
     /**
      * 商户id
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long shopId;
     /**
      * 用户id
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long userId;
     /**
      * 用户图标
@@ -84,5 +88,5 @@ public class Blog implements Serializable {
      */
     private LocalDateTime updateTime;
 
-
+    private Integer deleteFlag;
 }

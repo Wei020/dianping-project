@@ -14,4 +14,5 @@ public interface BlogCommentsService extends IService<BlogComment> {
 
     List<CommentDTO> queryMyComments();
 
+    Boolean delComment(Long id);
 }

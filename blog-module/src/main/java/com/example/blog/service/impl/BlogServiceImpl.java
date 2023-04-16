@@ -3,6 +3,7 @@ package com.example.blog.service.impl;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.blog.dto.Result;
@@ -24,6 +25,7 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -83,6 +85,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     public Result queryHotBlog(Integer current) {
         // 根据用户查询
         Page<Blog> page = query()
+                .eq("delete_flag", 0)
                 .orderByDesc("liked")
                 .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
         // 获取当前页数据
@@ -146,6 +149,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Override
     public Result saveBlog(Blog blog) {
+        if(blog.getId() != null){
+            blog.setUpdateTime(LocalDateTime.now());
+            return Result.ok(updateById(blog));
+        }
         UserDTO user = UserHolder.getUser();
         blog.setUserId(user.getId());
         blog.setComments(0);
@@ -222,5 +229,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         if(records.isEmpty())
             return Result.ok();
         return Result.ok(records);
+    }
+
+    @Override
+    public Boolean deleteBlog(Long id) {
+        UpdateWrapper<Blog> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set("delete_flag", 0);
+        updateWrapper.eq("id", id);
+        return update(updateWrapper);
     }
 }

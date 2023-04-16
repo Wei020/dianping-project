@@ -30,21 +30,25 @@ public class BlogComment implements Serializable {
     /**
      * 用户id
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long userId;
 
     /**
      * 探店id
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long blogId;
 
     /**
      * 关联的1级评论id，如果是一级评论，则值为0
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long parentId;
 
     /**
      * 回复的评论id
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long answerId;
 
     /**

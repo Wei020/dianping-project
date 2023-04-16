@@ -2,6 +2,7 @@ package com.example.blog.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.blog.dto.CommentDTO;
 import com.example.blog.dto.UserDTO;
@@ -49,7 +50,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
 
     @Override
     public List<CommentDTO> queryByBlogId(Long id) {
-        List<BlogComment> blogComments = query().eq("blog_id", id).list();
+        List<BlogComment> blogComments = query().eq("blog_id", id).eq("delete_flag", 0).list();
         List<CommentDTO> res = new LinkedList<>();
         for (BlogComment blogComment : blogComments) {
             res.add(extracted(blogComment, false));
@@ -92,13 +93,25 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
         if(null != s){
             return JSONObject.parseArray(s, CommentDTO.class);
         }
-        List<BlogComment> blogComments = query().eq("user_id", id).list();
+        List<BlogComment> blogComments = query().eq("user_id", id).eq("delete_flag", 0).orderByDesc("create_time").list();
         List<CommentDTO> res = new LinkedList<>();
         for (BlogComment blogComment : blogComments) {
             res.add(extracted(blogComment, true));
         }
         stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(res), RedisConstants.EXPIRE_TIME);
         return res;
+    }
+
+    @Override
+    public Boolean delComment(Long id) {
+        UserDTO user = UserHolder.getUser();
+        String key = RedisConstants.MY_COMMENTS_KEY + user.getId();
+        UpdateWrapper<BlogComment> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set("delete_flag", 1);
+        updateWrapper.eq("id", id);
+        boolean update = update(updateWrapper);
+        stringRedisTemplate.delete(key);
+        return update;
     }
 
     private CommentDTO extracted(BlogComment blogComment, boolean flag) {

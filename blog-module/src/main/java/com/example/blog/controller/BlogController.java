@@ -20,6 +20,8 @@ public class BlogController {
 
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {
+        if(blog == null)
+            return Result.ok();
         return blogService.saveBlog(blog);
     }
 
@@ -64,5 +66,10 @@ public class BlogController {
     @GetMapping("/of/follow")
     public Result queryBlogOfFollow(@RequestParam("lastId") Long max, @RequestParam(value = "offset", defaultValue = "0") Integer offset){
         return blogService.queryBlogOfFollow(max, offset);
+    }
+
+    @PostMapping("/delete/{id}")
+    public Result deleteBlog(@PathVariable("id") Long id){
+        return Result.ok(blogService.deleteBlog(id));
     }
 }

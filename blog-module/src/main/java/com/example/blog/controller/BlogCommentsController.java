@@ -23,6 +23,12 @@ public class BlogCommentsController {
         return Result.ok(commentDTO);
     }
 
+    @PostMapping("/delete/{id}")
+    public Result delBlogComment(@PathVariable Long id){
+        Boolean res =  blogCommentsService.delComment(id);
+        return Result.ok(res);
+    }
+
     @GetMapping("/query/{id}")
     public Result queryBlogComments(@PathVariable("id") Long id){
         List<CommentDTO> list = blogCommentsService.queryByBlogId(id);

@@ -20,4 +20,6 @@ public interface BlogService extends IService<Blog> {
     Result queryBlogOfFollow(Long max, Integer offset);
 
     Result queryMyBlog(Integer current);
+
+    Boolean deleteBlog(Long id);
 }
