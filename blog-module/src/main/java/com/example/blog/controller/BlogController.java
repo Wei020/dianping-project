@@ -41,6 +41,12 @@ public class BlogController {
         return blogService.queryHotBlog(current);
     }
 
+    @PostMapping("/find")
+    public Result queryBlogs(@RequestParam("condition") String condition){
+        List<Blog> blogs = blogService.queryBlogs(condition);
+        return Result.ok(blogs);
+    }
+
     @GetMapping("/{id}")
     public Result queryBlogById(@PathVariable("id") Long id){
         return blogService.queryBlogById(id);

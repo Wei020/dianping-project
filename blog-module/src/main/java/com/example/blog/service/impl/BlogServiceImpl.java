@@ -238,4 +238,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         updateWrapper.eq("id", id);
         return update(updateWrapper);
     }
+
+    @Override
+    public List<Blog> queryBlogs(String condition) {
+        List<Blog> blogs = query().eq("delete_flag", 0).like("title", condition).list();
+        return blogs;
+    }
 }
