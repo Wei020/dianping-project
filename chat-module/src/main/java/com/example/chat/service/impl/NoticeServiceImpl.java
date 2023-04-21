@@ -2,6 +2,8 @@ package com.example.chat.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chat.dto.NoticeDTO;
 import com.example.chat.dto.UserDTO;
@@ -13,6 +15,7 @@ import com.example.chat.service.ChatService;
 import com.example.chat.service.GroupService;
 import com.example.chat.service.NoticeService;
 import com.example.chat.utils.RedisConstants;
+import com.example.chat.utils.ThreadPool;
 import com.example.feign.clients.UserClient;
 import com.example.feign.dto.Result;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Service
@@ -93,6 +97,15 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
                 chat.setToId(notice.getGroupId());
                 chatService.save(chat);
                 stringRedisTemplate.delete(chatKey);
+                ThreadPoolExecutor poolExecutor = ThreadPool.poolExecutor;
+                poolExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        Group group = groupService.getById(notice.getGroupId());
+                        group.setNumber(group.getNumber() + 1);
+                        groupService.updateById(group);
+                    }
+                });
             }
         }else if(flag == 0){
             notice.setState(2);

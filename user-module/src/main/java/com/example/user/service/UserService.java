@@ -3,6 +3,8 @@ package com.example.user.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.feign.dto.UserListDTO;
 import com.example.user.dto.LoginFormDTO;
+import com.example.user.dto.OptionsDTO;
+import com.example.user.dto.ProvinceDTO;
 import com.example.user.dto.Result;
 import com.example.user.entity.User;
 import com.example.user.entity.UserInfo;
@@ -44,4 +46,6 @@ public interface UserService extends IService<User> {
     Boolean followUser(Long id, Long followId);
 
     Boolean notFollowUser(Long id, Long followId);
+
+    List<OptionsDTO> queryCity();
 }

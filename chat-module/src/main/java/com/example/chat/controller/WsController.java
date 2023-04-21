@@ -4,6 +4,7 @@ package com.example.chat.controller;
 
 import com.example.chat.entity.Message;
 import com.example.chat.service.MessageService;
+import com.example.feign.clients.UserClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -20,6 +21,7 @@ public class WsController {
 
     @Autowired
     private MessageService messageService;
+
 
     @MessageMapping("/hello")
     public void greeting(Message message){

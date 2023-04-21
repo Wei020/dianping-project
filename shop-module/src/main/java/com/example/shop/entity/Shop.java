@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -23,6 +24,7 @@ public class Shop implements Serializable {
     /**
      * 主键
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
@@ -85,6 +87,9 @@ public class Shop implements Serializable {
      * 营业时间，例如 10:00-22:00
      */
     private String openHours;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Long createId;
 
     /**
      * 创建时间

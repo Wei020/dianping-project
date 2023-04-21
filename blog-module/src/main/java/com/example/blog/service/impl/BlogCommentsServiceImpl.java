@@ -67,6 +67,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
         poolExecutor.execute(new Runnable() {
             @Override
             public void run() {
+                String key = RedisConstants.MY_COMMENTS_KEY + userDTO.getId();
                 NoticeDTO noticeDTO = new NoticeDTO();
                 Blog blog = blogService.getById(blogComment.getBlogId());
                 noticeDTO.setFromId(userDTO.getId());
@@ -78,6 +79,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
                 noticeDTO.setBlogId(blog.getId());
                 blog.setComments(blog.getComments() + 1);
                 blogService.updateById(blog);
+                stringRedisTemplate.delete(key);
 //        chatClient.notice(noticeDTO);
                 rabbitMQUtils.SendMessageNoticeQueue(noticeDTO);
             }

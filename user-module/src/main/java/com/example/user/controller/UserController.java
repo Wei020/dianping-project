@@ -1,9 +1,7 @@
 package com.example.user.controller;
 
 import com.example.feign.dto.UserListDTO;
-import com.example.user.dto.LoginFormDTO;
-import com.example.user.dto.Result;
-import com.example.user.dto.UserDTO;
+import com.example.user.dto.*;
 import com.example.user.entity.User;
 import com.example.user.entity.UserInfo;
 import com.example.user.service.UserService;
@@ -13,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 
 @Slf4j
@@ -111,5 +110,11 @@ public class UserController {
     @GetMapping("/find")
     public Result queryUserByCondition(@RequestParam("condition") String condition){
         return userService.queryUserByCondition(condition);
+    }
+
+    @PostMapping("/city")
+    public Result queryCity(){
+        List<OptionsDTO> provinces = userService.queryCity();
+        return Result.ok(provinces);
     }
 }

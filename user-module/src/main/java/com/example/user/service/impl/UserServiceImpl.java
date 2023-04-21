@@ -5,12 +5,10 @@ import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.feign.dto.UserListDTO;
-import com.example.user.dto.LoginFormDTO;
-import com.example.user.dto.Result;
-import com.example.user.dto.UserDTO;
+import com.example.user.dto.*;
 import com.example.user.entity.User;
 import com.example.user.entity.UserInfo;
 import com.example.user.mapper.UserMapper;
@@ -18,6 +16,7 @@ import com.example.user.service.SendMailService;
 import com.example.user.service.UserInfoService;
 import com.example.user.service.UserService;
 import com.example.user.utils.RegexUtils;
+import com.example.user.utils.SystemConstants;
 import com.example.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -417,6 +416,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userInfo1.setFans(userInfo1.getFans() - 1);
         flag2 = userInfoService.updateById(userInfo1);
         return flag1 && flag2;
+    }
+
+    @Override
+    public List<OptionsDTO> queryCity() {
+        CountryDTO countryDTOs = JSONObject.parseObject(SystemConstants.CITY_JSON, CountryDTO.class);
+        List<OptionsDTO> res = new LinkedList<>();
+        for (ProvinceDTO province : countryDTOs.getProvinces()) {
+            OptionsDTO optionsDTO = new OptionsDTO();
+            optionsDTO.setValue(province.getProvinceName());
+            optionsDTO.setLabel(province.getProvinceName());
+            List<OptionsDTO> children = new LinkedList<>();
+            for (CityDTO city : province.getCitys()) {
+                OptionsDTO optionsDTO1 = new OptionsDTO();
+                optionsDTO1.setValue(city.getCityName());
+                optionsDTO1.setLabel(city.getCityName());
+                children.add(optionsDTO1);
+            }
+            optionsDTO.setChildren(children);
+            res.add(optionsDTO);
+        }
+        return res;
     }
 
     private User createUserWithPhone(String phone) {

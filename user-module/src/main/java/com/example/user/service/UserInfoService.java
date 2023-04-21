@@ -7,4 +7,6 @@ import com.example.user.entity.UserInfo;
 public interface UserInfoService extends IService<UserInfo> {
 
     boolean saveUserInfo(Long id);
+
+
 }

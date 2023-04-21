@@ -25,4 +25,6 @@ public class Group {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long createId;
+
+    private Integer deleteFlag;
 }

@@ -68,4 +68,10 @@ public class GroupController {
         Group group = groupService.outGroup(id);
         return Result.ok(group);
     }
+
+    @PostMapping("/cancel/{id}")
+    public Result cancelGroup(@PathVariable("id") Long id){
+        Boolean res = groupService.cancelGroup(id);
+        return Result.ok(res);
+    }
 }

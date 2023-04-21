@@ -23,6 +23,10 @@ public class Message {
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long toId;
 
+    private String fromNickname;
+
+    private String fromIcon;
+
     private String content;
 
     /*

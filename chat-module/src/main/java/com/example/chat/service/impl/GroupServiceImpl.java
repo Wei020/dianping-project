@@ -15,6 +15,7 @@ import com.example.chat.service.ChatService;
 import com.example.chat.service.GroupService;
 import com.example.chat.service.NoticeService;
 import com.example.chat.utils.RedisConstants;
+import com.example.chat.utils.ThreadPool;
 import com.example.chat.utils.UserHolder;
 import com.example.feign.clients.UserClient;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +23,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Service
@@ -163,5 +166,30 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
             res.add(userDTO);
         }
         return res;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Boolean cancelGroup(Long id) {
+        UpdateWrapper<Group> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("id", id);
+        updateWrapper.set("delete_flag", 1);
+        boolean update = update(updateWrapper);
+        if (update){
+            List<Chat> chats = chatService.query().eq("to_id", id).list();
+            ThreadPoolExecutor poolExecutor = ThreadPool.poolExecutor;
+            for (Chat chat : chats) {
+                poolExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        String key = RedisConstants.CHAT_LIST_KEY + chat.getFromId();
+                        chat.setDeleteFlag(1);
+                        chatService.updateById(chat);
+                        stringRedisTemplate.delete(key);
+                    }
+                });
+            }
+        }
+        return update;
     }
 }

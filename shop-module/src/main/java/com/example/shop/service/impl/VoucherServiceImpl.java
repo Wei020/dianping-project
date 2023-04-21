@@ -15,6 +15,7 @@ import com.example.shop.service.IShopService;
 import com.example.shop.service.IVoucherOrderService;
 import com.example.shop.service.IVoucherService;
 import com.example.shop.utils.RedisConstants;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ import java.util.List;
 
 import static com.example.shop.utils.RedisConstants.SECKILL_STOCK_KEY;
 
-
+@Slf4j
 @Service
 public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> implements IVoucherService {
 
@@ -50,20 +51,21 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
         return Result.ok(vouchers);
     }
 
-    @Override
     @Transactional
-    public void addSeckillVoucher(Voucher voucher) {
-        // 保存优惠券
-        save(voucher);
+    public boolean addSeckillVoucher(Voucher voucher) {
         // 保存秒杀信息
         SeckillVoucher seckillVoucher = new SeckillVoucher();
         seckillVoucher.setVoucherId(voucher.getId());
         seckillVoucher.setStock(voucher.getStock());
         seckillVoucher.setBeginTime(voucher.getBeginTime());
         seckillVoucher.setEndTime(voucher.getEndTime());
-        seckillVoucherService.save(seckillVoucher);
+        boolean flag = seckillVoucherService.save(seckillVoucher);
 //        写入redis
-        stringRedisTemplate.opsForValue().set(SECKILL_STOCK_KEY + voucher.getId(), voucher.getStock().toString());
+        if(flag){
+            stringRedisTemplate.opsForValue().set(SECKILL_STOCK_KEY + voucher.getId(), voucher.getStock().toString());
+            return flag;
+        }
+        return false;
     }
 
     @Override
@@ -91,5 +93,21 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
         }
         stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(res));
         return res;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean addVoucher(VoucherDTO voucherDTO) {
+        log.info("接收的代金券参数:" + JSONObject.toJSONString(voucherDTO));
+        Voucher voucher = BeanUtil.copyProperties(voucherDTO, Voucher.class);
+        voucher.setPayValue(voucherDTO.getPayValue());
+        voucher.setActualValue(voucherDTO.getActualValue());
+        voucher.setStatus(1);
+        boolean flag1 = save(voucher);
+        boolean flag2 = false;
+        if(voucher.getType() == 1){
+            flag2 = addSeckillVoucher(voucher);
+        }
+        return flag1 && flag2;
     }
 }

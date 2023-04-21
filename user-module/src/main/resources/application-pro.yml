@@ -8,14 +8,14 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://8.130.29.46:3306/dp_pojo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
-    password: 123321
+    password:
   cloud:
     nacos:
       server-addr: 8.130.29.46:8848
   redis:
     host: 8.130.29.46
     port: 6379
-    password: 123321
+    password:
     lettuce:
       pool:
         max-active: 10
@@ -28,12 +28,12 @@ spring:
     host: 8.130.29.46
     port: 5672
     username: wei
-    password: 123321
+    password:
     virtual-host: /
   mail:
     host: smtp.qq.com
     username: haoxiang020@qq.com
-    password: wjjdakiohhvlbcea
+    password:
     port: 465
     protocol: smtp
     properties:

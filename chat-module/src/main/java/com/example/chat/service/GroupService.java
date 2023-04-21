@@ -22,4 +22,6 @@ public interface GroupService extends IService<Group> {
     Group outGroup(Long id);
 
     List<UserDTO> queryNumbers(Long id);
+
+    Boolean cancelGroup(Long id);
 }

@@ -7,10 +7,12 @@ import com.example.shop.dto.Result;
 import com.example.shop.entity.Shop;
 import com.example.shop.service.IShopService;
 import com.example.shop.utils.SystemConstants;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
+@Slf4j
 @RestController()
 @RequestMapping("/shop")
 public class ShopController {
@@ -28,9 +30,10 @@ public class ShopController {
     @PostMapping
     public Result saveShop(@RequestBody Shop shop) {
         // 写入数据库
-        shopService.save(shop);
-        // 返回店铺id
-        return Result.ok(shop.getId());
+        log.info("接收数据:" + shop.toString());
+        Long res = shopService.saveShop(shop);
+//         返回店铺id
+        return Result.ok(res);
     }
 
 

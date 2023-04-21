@@ -8,7 +8,9 @@ import com.example.shop.entity.Shop;
 import com.example.shop.mapper.ShopMapper;
 import com.example.shop.service.IShopService;
 import com.example.shop.utils.CacheClient;
+import com.example.shop.utils.RedisConstants;
 import com.example.shop.utils.SystemConstants;
+import com.example.shop.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Distance;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -111,6 +114,23 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             shop.setDistance(distanceMap.get(shop.getId().toString()).getValue());
         }
         return Result.ok(shops);
+    }
+
+    @Override
+    public Long saveShop(Shop shop) {
+        if(shop.getId() != null){
+            String key = CACHE_SHOP_KEY + shop.getId();
+            shop.setUpdateTime(LocalDateTime.now());
+            stringRedisTemplate.delete(key);
+            updateById(shop);
+            return shop.getId();
+        }
+        shop.setComments(0);
+        shop.setSold(0);
+        shop.setScore(30);
+        shop.setCreateId(UserHolder.getUser().getId());
+        save(shop);
+        return shop.getId();
     }
 
 }

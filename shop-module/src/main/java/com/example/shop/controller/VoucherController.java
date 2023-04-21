@@ -18,15 +18,9 @@ public class VoucherController {
     private IVoucherService voucherService;
 
     @PostMapping
-    public Result addVoucher(@RequestBody Voucher voucher) {
-        voucherService.save(voucher);
-        return Result.ok(voucher.getId());
-    }
-
-    @PostMapping("/seckill")
-    public Result addSeckillVoucher(@RequestBody Voucher voucher) {
-        voucherService.addSeckillVoucher(voucher);
-        return Result.ok(voucher.getId());
+    public Result addVoucher(@RequestBody VoucherDTO voucherDTO) {
+        boolean res = voucherService.addVoucher(voucherDTO);
+        return Result.ok(res);
     }
 
 

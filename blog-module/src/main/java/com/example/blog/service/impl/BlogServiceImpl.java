@@ -14,6 +14,7 @@ import com.example.blog.entity.Follow;
 import com.example.blog.mapper.BlogMapper;
 import com.example.blog.service.BlogService;
 import com.example.blog.service.FollowService;
+import com.example.blog.utils.RedisConstants;
 import com.example.blog.utils.SystemConstants;
 import com.example.blog.utils.UserHolder;
 import com.example.feign.clients.UserClient;
@@ -218,6 +219,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         Page<Blog> page = query()
                 .orderByDesc("create_time")
                 .eq("user_id", id)
+                .eq("delete_flag", 0)
                 .page(new Page<>(current, SystemConstants.My_PAGE_SIZE));
         // 获取当前页数据
         List<Blog> records = page.getRecords();
@@ -233,9 +235,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Override
     public Boolean deleteBlog(Long id) {
+//        String key = RedisConstants.MY_BLOGS_KEY + UserHolder.getUser().getId();
         UpdateWrapper<Blog> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.set("delete_flag", 0);
+        updateWrapper.set("delete_flag", 1);
         updateWrapper.eq("id", id);
+        //        if (update){
+//            stringRedisTemplate.delete(key);
+//        }
         return update(updateWrapper);
     }
 
