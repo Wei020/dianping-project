@@ -29,9 +29,9 @@ public class VoucherController {
        return voucherService.queryVoucherOfShop(shopId);
     }
 
-    @PostMapping("/of/{id}")
-    public Result findVoucherByUser(@PathVariable("id") Long id){
-        List<VoucherDTO> res= voucherService.findVoucherByUser(id);
+    @PostMapping("/of")
+    public Result findVoucherByUser(@RequestParam("id") Long id, @RequestParam("current") Integer current){
+        List<VoucherDTO> res= voucherService.findVoucherByUser(id, current);
         return Result.ok(res);
     }
 }

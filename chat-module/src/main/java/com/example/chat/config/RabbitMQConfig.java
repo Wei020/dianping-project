@@ -9,14 +9,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-//        @Autowired
-//        private RabbitTemplate rabbitTemplate;
-//
-//        @Bean
-//        public RabbitTemplate rabbitTemplate(){
-//                rabbitTemplate.setMessageConverter(jsonMessageConverter());
-//        }
-
         @Bean
         public MessageConverter jsonMessageConverter(ObjectMapper objectMapper){
                 return new Jackson2JsonMessageConverter(objectMapper);

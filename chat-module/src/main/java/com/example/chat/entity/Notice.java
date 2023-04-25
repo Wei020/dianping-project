@@ -35,6 +35,9 @@ public class Notice {
     /*
      * 0:申请加群
      * 1:申请加人
+     * 2:关注通知
+     * 3:评论通知
+     * 4:回复通知
      * */
     private Integer type;
 

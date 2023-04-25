@@ -14,8 +14,8 @@ import com.example.blog.entity.Follow;
 import com.example.blog.mapper.BlogMapper;
 import com.example.blog.service.BlogService;
 import com.example.blog.service.FollowService;
-import com.example.blog.utils.RedisConstants;
 import com.example.blog.utils.SystemConstants;
+import com.example.blog.utils.ThreadPool;
 import com.example.blog.utils.UserHolder;
 import com.example.feign.clients.UserClient;
 import com.example.feign.dto.UserListDTO;
@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static com.example.blog.utils.RedisConstants.BLOG_LIKED_KEY;
@@ -58,6 +59,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 //        查询blog有关的用户
         queryBlogUser(blog);
         isBlogLiked(blog);
+        ThreadPoolExecutor poolExecutor = ThreadPool.poolExecutor;
+        poolExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                update().setSql("sort = sort + 1").eq("id", id).update();
+            }
+        });
         return Result.ok(blog);
     }
 
@@ -87,7 +95,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         // 根据用户查询
         Page<Blog> page = query()
                 .eq("delete_flag", 0)
-                .orderByDesc("liked")
+                .orderByDesc("sort", "create_time")
                 .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
         // 获取当前页数据
         List<Blog> records = page.getRecords();
@@ -109,9 +117,16 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         String key = BLOG_LIKED_KEY + id;
         Double score = stringRedisTemplate.opsForZSet().score(key, userId.toString());
         Blog blog = getById(id);
+        ThreadPoolExecutor poolExecutor = ThreadPool.poolExecutor;
         if(score == null){
             //        未点赞，加1
             boolean isSuccess = update().setSql("liked = liked + 1").eq("id", id).update();
+            poolExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    update().setSql("sort = sort + 2").eq("id", id).update();
+                }
+            });
             if(isSuccess){
                 stringRedisTemplate.opsForZSet().add(key, userId.toString(), System.currentTimeMillis());
                 blog.setIsLike(true);
@@ -120,6 +135,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         }else{
             //        点赞，减1
             boolean isSuccess = update().setSql("liked = liked - 1").eq("id", id).update();
+            poolExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    update().setSql("sort = sort - 2").eq("id", id).update();
+                }
+            });
             if(isSuccess){
                 stringRedisTemplate.opsForZSet().remove(key, userId.toString());
                 blog.setIsLike(false);
@@ -158,6 +179,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         blog.setUserId(user.getId());
         blog.setComments(0);
         blog.setLiked(0);
+        blog.setSort(0);
         // 保存探店博文
         boolean isSuccess = save(blog);
 //        查询笔记作者的所有粉丝
@@ -217,9 +239,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     public Result queryMyBlog(Integer current) {
         Long id = UserHolder.getUser().getId();
         Page<Blog> page = query()
-                .orderByDesc("create_time")
                 .eq("user_id", id)
                 .eq("delete_flag", 0)
+                .orderByDesc("create_time")
                 .page(new Page<>(current, SystemConstants.My_PAGE_SIZE));
         // 获取当前页数据
         List<Blog> records = page.getRecords();

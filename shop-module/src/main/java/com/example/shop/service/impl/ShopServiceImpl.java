@@ -1,9 +1,14 @@
 package com.example.shop.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.feign.clients.UserClient;
+import com.example.feign.entity.UserInfo;
 import com.example.shop.dto.Result;
+import com.example.shop.dto.UserDTO;
 import com.example.shop.entity.Shop;
 import com.example.shop.mapper.ShopMapper;
 import com.example.shop.service.IShopService;
@@ -39,6 +44,12 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     @Resource
     private CacheClient cacheClient;
 
+    @Autowired
+    private UserClient userClient;
+
+    @Autowired
+    private ShopMapper shopMapper;
+
     @Override
     public Result queryById(Long id) {
 //        缓存穿透
@@ -70,50 +81,34 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     }
 
     @Override
-    public Result queryShopByType(Integer typeId, Integer current, String sortBy, Double x, Double y) {
+    public Result queryShopByType(Integer typeId, Integer current, String sortBy, String condition) {
         log.info("排序方式为:" + sortBy);
+        UserDTO user = UserHolder.getUser();
+        boolean isLogin = false;
+        UserInfo userInfo = null;
+        if(user != null){
+            Object data = userClient.queryUserInfoById(user.getId()).getData();
+            userInfo = JSONObject.parseObject(JSONObject.toJSONString(data), UserInfo.class);
+            if(userInfo != null && userInfo.getCity() != null){
+                isLogin = true;
+            }
+        }
+        log.info("islogin为:" + isLogin);
 //        判断是否需要根据坐标查询
-        x = null;
-        if(x == null || y == null){
-            Page<Shop> page = query()
-                    .eq("type_id", typeId)
-                    .orderBy(!sortBy.isEmpty(), false, sortBy)
-                    .page(new Page<>(current, SystemConstants.DEFAULT_PAGE_SIZE));
-            return Result.ok(page.getRecords());
+        QueryWrapper<Shop> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("type_id", typeId);
+        if(isLogin){
+            queryWrapper.eq("area", userInfo.getCity());
         }
-//        计算分页参数
-        int from = (current - 1) * SystemConstants.DEFAULT_PAGE_SIZE;
-        int end = current * SystemConstants.DEFAULT_PAGE_SIZE;
-//        查询redis、按照距离排序、分页。
-        String key = SHOP_GEO_KEY + typeId;
-        GeoResults<RedisGeoCommands.GeoLocation<String>> results = stringRedisTemplate.opsForGeo()
-                .search(key, GeoReference.fromCoordinate(x, y),
-                        new Distance(5000000),
-                        RedisGeoCommands.GeoRadiusCommandArgs.newGeoRadiusArgs().includeCoordinates().limit(end)
-                );
-        if(results == null){
-            return Result.ok(Collections.emptyList());
-        }
-        List<GeoResult<RedisGeoCommands.GeoLocation<String>>> list = results.getContent();
-        if(list.size() <= from){
-            return Result.ok(Collections.emptyList());
-        }
-        List<Long> ids = new ArrayList<>(list.size());
-        Map<String, Distance> distanceMap = new HashMap<>(list.size());
-        list.stream().skip(from).forEach(result -> {
-//            获取店铺id
-            String shopIdStr = result.getContent().getName();
-            ids.add(Long.valueOf(shopIdStr));
-//            获取距离
-            Distance distance = result.getDistance();
-            distanceMap.put(shopIdStr, distance);
-        });
-        String idStr = StrUtil.join(",", ids);
-        List<Shop> shops = query().in("id", ids).last("ORDER BY FIELD(id," + idStr + ")").list();
-        for (Shop shop : shops) {
-            shop.setDistance(distanceMap.get(shop.getId().toString()).getValue());
-        }
-        return Result.ok(shops);
+        queryWrapper.like(!condition.isEmpty(), "name", condition);
+        queryWrapper.orderBy(!sortBy.isEmpty(), false, sortBy);
+        Page<Shop> page = new Page<>(current, SystemConstants.DEFAULT_PAGE_SIZE);
+        List<Shop> records = shopMapper.selectPage(page, queryWrapper).getRecords();
+//        if(page.getRecords().isEmpty())
+//            return Result.ok();
+        if (records.isEmpty())
+            return Result.ok();
+        return Result.ok(records);
     }
 
     @Override
@@ -129,6 +124,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         shop.setSold(0);
         shop.setScore(30);
         shop.setCreateId(UserHolder.getUser().getId());
+        shop.setAvgPrice(80L);
         save(shop);
         return shop.getId();
     }

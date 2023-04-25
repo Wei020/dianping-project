@@ -2,6 +2,7 @@ package com.example.shop.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.shop.dto.Result;
 import com.example.shop.dto.VoucherDTO;
@@ -15,6 +16,7 @@ import com.example.shop.service.IShopService;
 import com.example.shop.service.IVoucherOrderService;
 import com.example.shop.service.IVoucherService;
 import com.example.shop.utils.RedisConstants;
+import com.example.shop.utils.SystemConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -69,14 +71,21 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
     }
 
     @Override
-    public List<VoucherDTO> findVoucherByUser(Long id) {
+    public List<VoucherDTO> findVoucherByUser(Long id, Integer current) {
         String key = RedisConstants.USER_VOUCHER_LIST + id;
         String s = stringRedisTemplate.opsForValue().get(key);
-        if(null != s){
+        if(null != s && current == 1){
             List<VoucherDTO> res = JSONObject.parseArray(s, VoucherDTO.class);
             return res;
         }
-        List<VoucherOrder> orders = voucherOrderService.query().eq("user_id", id).orderByDesc("create_time").list();
+        List<VoucherOrder> orders = voucherOrderService.query()
+                .eq("user_id", id)
+                .orderByDesc("create_time")
+                .page(new Page<VoucherOrder>(current, SystemConstants.VOUCHER_PAGE_SIZE))
+                .getRecords();
+        if(orders == null || orders.size() == 0){
+            return null;
+        }
         List<VoucherDTO> res = new LinkedList<>();
         for (VoucherOrder order : orders) {
             Voucher voucher = getById(order.getVoucherId());
@@ -91,7 +100,9 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
             }
             res.add(voucherDTO);
         }
-        stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(res));
+        if(current == 1){
+            stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(res));
+        }
         return res;
     }
 

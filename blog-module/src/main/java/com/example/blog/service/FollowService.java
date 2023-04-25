@@ -16,6 +16,6 @@ public interface FollowService extends IService<Follow> {
 
     Result followCommons(Long id);
 
-    List<UserDTO> queryFans();
+    List<UserDTO> queryFans(Integer current);
 
 }

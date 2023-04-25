@@ -3,11 +3,14 @@ package com.example.shop.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.shop.dto.Result;
+import com.example.shop.entity.Shop;
 import com.example.shop.entity.Voucher;
 import com.example.shop.entity.VoucherOrder;
 import com.example.shop.mapper.VoucherOrderMapper;
 import com.example.shop.service.ISeckillVoucherService;
+import com.example.shop.service.IShopService;
 import com.example.shop.service.IVoucherOrderService;
+import com.example.shop.service.IVoucherService;
 import com.example.shop.utils.RedisConstants;
 import com.example.shop.utils.RedisIdWorker;
 import com.example.shop.utils.ThreadPool;
@@ -28,10 +31,13 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -45,6 +51,12 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private IVoucherService voucherService;
+
+    @Autowired
+    private IShopService shopService;
 
 //    @Autowired
 //    private RedissonClient redissonClient;
@@ -98,6 +110,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             return;
         }
         save(order);
+        Voucher voucher = voucherService.getById(voucherId);
+        shopService.update().setSql("sold = sold + 1")
+                .eq("id", voucher.getShopId()).update();
 //        } finally {
 //            redisLock.unlock();
 //        }
@@ -137,6 +152,13 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     @Override
     public Boolean killVoucher(Long voucherId) {
         Long userId = UserHolder.getUser().getId();
+        Date date = new Date();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+        String day = simpleDateFormat.format(date);
+        String dayKey = RedisConstants.VOUCHER_DAY_USERS + day;
+        if(Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(dayKey, userId.toString()))) {
+            return false;
+        }
         long orderId = redisIdWorker.nextId("order");
         VoucherOrder voucherOrder = new VoucherOrder();
         voucherOrder.setId(orderId);
@@ -146,6 +168,22 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         boolean res = save(voucherOrder);
         if (res){
             stringRedisTemplate.delete(key);
+            if(Boolean.FALSE.equals(stringRedisTemplate.hasKey(dayKey))){
+                stringRedisTemplate.opsForSet().add(dayKey, userId.toString());
+                stringRedisTemplate.expire(dayKey, 24L, TimeUnit.HOURS);
+            }else {
+                stringRedisTemplate.opsForSet().add(dayKey, userId.toString());
+            }
+            ThreadPoolExecutor poolExecutor = ThreadPool.poolExecutor;
+            poolExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Voucher voucher = voucherService.getById(voucherId);
+                    shopService.update().setSql("sold = sold + 1")
+                            .eq("id", voucher.getShopId())
+                            .update();
+                }
+            });
         }
         return res;
     }

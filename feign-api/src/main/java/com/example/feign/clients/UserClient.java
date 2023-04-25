@@ -15,6 +15,9 @@ public interface UserClient {
     @GetMapping("/user/{id}")
     Result queryUserById(@PathVariable("id") Long id);
 
+    @GetMapping("/user/info/{id}")
+    Result queryUserInfoById(@PathVariable("id") Long id);
+
     @PostMapping("/user/list")
     Result queryUserList(@RequestBody UserListDTO userList);
 

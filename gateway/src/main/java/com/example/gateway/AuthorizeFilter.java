@@ -17,6 +17,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -26,7 +27,8 @@ import java.util.concurrent.TimeUnit;
 public class AuthorizeFilter implements GlobalFilter, Ordered {
 
     private static final String LOGIN_USER_KEY = "login:token:";
-    private static final long LOGIN_USER_TTL = 20L;
+    private static final String LOGIN_USER_ID = "login:users:";
+    private static final long LOGIN_USER_TTL = 600L;
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
     @Autowired
@@ -56,8 +58,10 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
         // 3.校验
         if (!userMap.isEmpty() || check) {
             // 放行,刷新token有效期
-            if(!userMap.isEmpty())
-                stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.MINUTES);
+            if(!userMap.isEmpty()){
+                stringRedisTemplate.expire(key, LOGIN_USER_TTL, TimeUnit.SECONDS);
+                stringRedisTemplate.opsForHash().put(LOGIN_USER_ID, userMap.get("id"), String.valueOf(System.currentTimeMillis()));
+            }
             return chain.filter(exchange);
         }
         // 4.拦截

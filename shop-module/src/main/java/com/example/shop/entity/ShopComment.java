@@ -1,48 +1,48 @@
-package com.example.blog.dto;
+package com.example.shop.entity;
 
-import com.example.blog.entity.Blog;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
-public class CommentDTO {
+@EqualsAndHashCode(callSuper = false)
+@Accessors(chain = true)
+@TableName("tb_shop_comments")
+public class ShopComment implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * 主键
      */
     @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 用户id
+     */
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long userId;
-
-    /**
-     * 用户信息
-     */
-    private UserDTO user;
 
     /**
      * 探店id
      */
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private Long blogId;
-
-
-    private Blog blog;
+    private Long shopId;
 
     /**
      * 关联的1级评论id，如果是一级评论，则值为0
      */
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long parentId;
-
-    private List<CommentDTO> respondLists;
-
-
-    private UserDTO answerUser;
 
     /**
      * 回复的评论id
@@ -60,10 +60,12 @@ public class CommentDTO {
      */
     private Integer liked;
 
+    private String images;
+
     /**
-     * 状态，0：正常，1：被举报，2：禁止查看
+     * 评分
      */
-    private Boolean status;
+    private Integer rate;
 
     /**
      * 创建时间
@@ -74,4 +76,6 @@ public class CommentDTO {
      * 更新时间
      */
     private LocalDateTime updateTime;
+
+    private Integer deleteFlag;
 }

@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface NoticeService extends IService<Notice> {
 
-    List<NoticeDTO> queryNotice(Long id);
+    List<NoticeDTO> queryNotice(Long id, Integer current);
 
     void doNotice(Long id, Integer flag);
 

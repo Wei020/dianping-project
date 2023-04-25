@@ -29,8 +29,8 @@ public class ChatController {
     }
 
     @GetMapping("/myChats")
-    public Result queryChats(@RequestParam("id") Long id){
-        List<ChatDTO> result = chatService.queryChats(id);
+    public Result queryChats(@RequestParam("id") Long id, @RequestParam("current") Integer current){
+        List<ChatDTO> result = chatService.queryChats(id, current);
         return Result.ok(result);
     }
 
@@ -42,7 +42,7 @@ public class ChatController {
 
     @PostMapping("/make")
     public Result makeChat(@RequestBody Chat chat){
-        Chat res = chatService.makeChat(chat, true);
+        ChatDTO res = chatService.makeChat(chat, true);
         return Result.ok(res);
     }
 

@@ -12,7 +12,7 @@ public interface IVoucherService extends IService<Voucher> {
 
     Result queryVoucherOfShop(Long shopId);
 
-    List<VoucherDTO> findVoucherByUser(Long id);
+    List<VoucherDTO> findVoucherByUser(Long id, Integer current);
 
     boolean addVoucher(VoucherDTO voucherDTO);
 }

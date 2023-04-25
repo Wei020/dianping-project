@@ -53,15 +53,15 @@ public class Shop implements Serializable {
      */
     private String address;
 
-    /**
-     * 经度
-     */
-    private Double x;
-
-    /**
-     * 维度
-     */
-    private Double y;
+//    /**
+//     * 经度
+//     */
+//    private Double x;
+//
+//    /**
+//     * 维度
+//     */
+//    private Double y;
 
     /**
      * 均价，取整数

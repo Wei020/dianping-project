@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chat.dto.NoticeDTO;
 import com.example.chat.dto.UserDTO;
@@ -15,6 +16,7 @@ import com.example.chat.service.ChatService;
 import com.example.chat.service.GroupService;
 import com.example.chat.service.NoticeService;
 import com.example.chat.utils.RedisConstants;
+import com.example.chat.utils.SystemConstants;
 import com.example.chat.utils.ThreadPool;
 import com.example.feign.clients.UserClient;
 import com.example.feign.dto.Result;
@@ -28,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
@@ -50,18 +53,23 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
     private StringRedisTemplate stringRedisTemplate;
 
     @Override
-    public List<NoticeDTO> queryNotice(Long id) {
+    public List<NoticeDTO> queryNotice(Long id, Integer current) {
         String key = RedisConstants.NOTICE_LIST_KEY + id;
         String s = stringRedisTemplate.opsForValue().get(key);
-        if(null != s){
-            List<NoticeDTO> res = JSONObject.parseArray(s, NoticeDTO.class);
-            return res;
+        if(null != s && current == 1){
+            return JSONObject.parseArray(s, NoticeDTO.class);
         }
-        List<Notice> list = query().eq("to_id", id).or().eq("from_id", id).orderByDesc("send_time").list();
+        log.info("current：" + current);
+        List<Notice> list = query().eq("to_id", id).or().eq("from_id", id).orderByDesc("send_time")
+                .page(new Page<>(current, SystemConstants.NOTICE_PAGE_SIZE)).getRecords();
+        if(list == null || list.size() == 0){
+            return null;
+        }
+        log.info("分页结果:" + list.toString());
         List<NoticeDTO> res = new LinkedList<>();
         for (Notice notice : list) {
-            if((notice.getType() == 2 || notice.getType() == 3) && notice.getFromId() == id)
-                continue;
+//            if((notice.getType() == 2 || notice.getType() == 3) && Objects.equals(notice.getFromId(), id))
+//                continue;
             NoticeDTO noticeDTO = new NoticeDTO();
             BeanUtil.copyProperties(notice, noticeDTO);
             Long fromId = notice.getFromId();
@@ -77,7 +85,9 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
             }
             res.add(noticeDTO);
         }
-        stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(res));
+        if(current == 1){
+            stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(res));
+        }
         return res;
     }
 

@@ -78,6 +78,8 @@ public class Blog implements Serializable {
      */
     private Integer comments;
 
+    private Integer sort;
+
     /**
      * 创建时间
      */

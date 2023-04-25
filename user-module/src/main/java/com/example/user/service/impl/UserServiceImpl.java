@@ -15,9 +15,7 @@ import com.example.user.mapper.UserMapper;
 import com.example.user.service.SendMailService;
 import com.example.user.service.UserInfoService;
 import com.example.user.service.UserService;
-import com.example.user.utils.RegexUtils;
-import com.example.user.utils.SystemConstants;
-import com.example.user.utils.UserHolder;
+import com.example.user.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
@@ -51,6 +49,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private UserInfoService userInfoService;
 
+    @Autowired
+    private RabbitMQUtils rabbitMQUtils;
 
 //    @Autowired
 //    private ShopClient shopClient;
@@ -122,14 +122,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return LoginByPhoneCode(loginForm, phone);
         }else{
             User user = query().eq("phone", phone).eq("password", pwd).one();
-            if(user == null)
+            if(user == null){
                 return Result.fail("密码错误！");
-            else{
-                tokenKey = UUID.randomUUID().toString(true);
-                saveUserMsg(user, tokenKey);
-                return Result.ok(tokenKey);
             }
-
+            String s = (String) stringRedisTemplate.opsForHash().get(LOGIN_USER_ID, user.getId().toString());
+            if(s != null){
+                Long value = Long.valueOf(s);
+                Long now = System.currentTimeMillis();
+                if(now - value < 600000L){
+                    log.info(value + "-" + now);
+                    return Result.fail("已在其他客户端登录！");
+                }
+            }
+            tokenKey = UUID.randomUUID().toString(true);
+            saveUserMsg(user, tokenKey);
+            return Result.ok(tokenKey);
         }
     }
 
@@ -147,6 +154,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null) {
             //        6、不存在，创建新用户并保存
             user = createUserWithEmail(email);
+        }else {
+            String s = (String) stringRedisTemplate.opsForHash().get(LOGIN_USER_ID, user.getId().toString());
+            if(s != null){
+                Long value = Long.valueOf(s);
+                Long now = System.currentTimeMillis();
+                if(now - value < 600000L){
+                    return Result.fail("已在其他客户端登录！");
+                }
+            }
         }
 //        保存用户信息
         //        7.1、随机生成token，作为登录令牌
@@ -169,6 +185,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null) {
             //        6、不存在，创建新用户并保存
             user = createUserWithPhone(phone);
+        }else {
+            String s = (String) stringRedisTemplate.opsForHash().get(LOGIN_USER_ID, user.getId().toString());
+            if(s != null){
+                Long value = Long.valueOf(s);
+                Long now = System.currentTimeMillis();
+                if(now - value < 600000L){
+                    return Result.fail("已在其他客户端登录！");
+                }
+            }
         }
 //        保存用户信息
         //        7.1、随机生成token，作为登录令牌
@@ -190,7 +215,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //        7.3、存储
         stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + tokenKey,userMap);
 //        7.4、设置token有效期
-        stringRedisTemplate.expire(LOGIN_USER_KEY + tokenKey, LOGIN_USER_TTL, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForHash().put(LOGIN_USER_ID, user.getId().toString(), String.valueOf(System.currentTimeMillis()));
+        stringRedisTemplate.expire(LOGIN_USER_KEY + tokenKey, LOGIN_USER_TTL, TimeUnit.SECONDS);
     }
 
     //    签到功能
@@ -237,13 +263,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public Result logout(HttpServletRequest request) {
+    public Result logout(Long id, HttpServletRequest request) {
         tokenKey = request.getHeader("authorization");
         if(tokenKey == null || tokenKey.isEmpty())
             return Result.fail("未登录无法退出！");
         Boolean isSuccess = stringRedisTemplate.delete(LOGIN_USER_KEY + tokenKey);
-        if(!isSuccess)
+        if(Boolean.FALSE.equals(isSuccess))
             return Result.fail("退出失败！");
+        stringRedisTemplate.opsForHash().delete(LOGIN_USER_ID, id.toString());
         return Result.ok();
     }
 
@@ -292,8 +319,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         boolean update = updateById(user);
         tokenKey = request.getHeader("authorization");
         saveUserMsg(user, tokenKey);
-        String key = CHAT_LIST_KEY + user.getId();
-        stringRedisTemplate.delete(key);
+        UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+        rabbitMQUtils.SendMessageInfoQueue(userDTO);
         return Result.ok(update);
     }
 
@@ -437,6 +464,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             res.add(optionsDTO);
         }
         return res;
+    }
+
+    @Override
+    public UserInfo queryUserInfoById(Long userId) {
+        UserInfo userInfo = userInfoService.getById(userId);
+        return userInfo;
     }
 
     private User createUserWithPhone(String phone) {

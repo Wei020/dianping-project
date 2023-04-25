@@ -18,9 +18,9 @@ public class BlogCommentsController {
     private BlogCommentsService blogCommentsService;
 
     @PostMapping("/add")
-    public Result blogComment(@RequestBody BlogComment blogComment){
-        CommentDTO commentDTO = blogCommentsService.addComment(blogComment);
-        return Result.ok(commentDTO);
+    public Result blogComment(@RequestBody CommentDTO commentDTO){
+        CommentDTO res = blogCommentsService.addComment(commentDTO);
+        return Result.ok(res);
     }
 
     @PostMapping("/delete/{id}")
@@ -31,13 +31,19 @@ public class BlogCommentsController {
 
     @GetMapping("/query/{id}")
     public Result queryBlogComments(@PathVariable("id") Long id){
-        List<CommentDTO> list = blogCommentsService.queryByBlogId(id);
+        List<CommentDTO> list = blogCommentsService.queryByBlogId(id, true);
+        return Result.ok(list);
+    }
+
+    @GetMapping("/queryAll/{id}")
+    public Result queryAllBlogComments(@PathVariable("id") Long id){
+        List<CommentDTO> list = blogCommentsService.queryByBlogId(id, false);
         return Result.ok(list);
     }
 
     @PostMapping("/comments")
-    public Result queryMyComments(){
-        List<CommentDTO> list = blogCommentsService.queryMyComments();
+    public Result queryMyComments(@RequestParam("current") Integer current){
+        List<CommentDTO> list = blogCommentsService.queryMyComments(current);
         return Result.ok(list);
     }
 

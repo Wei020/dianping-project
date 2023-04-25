@@ -32,8 +32,8 @@ public class FollowController {
     }
 
     @PostMapping("/fans")
-    public Result queryFans(){
-        List<UserDTO> res = followService.queryFans();
+    public Result queryFans(@RequestParam("current") Integer current){
+        List<UserDTO> res = followService.queryFans(current);
         return Result.ok(res);
     }
 

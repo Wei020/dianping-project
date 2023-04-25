@@ -51,20 +51,28 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
 
     @Override
     public ChatDTO makeGroup(Group group) {
+        if(group.getId() != null){
+            updateById(group);
+            ThreadPoolExecutor poolExecutor = ThreadPool.poolExecutor;
+            poolExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    List<Chat> chats = chatService.query().eq("to_id", group.getId()).eq("delete_flag", 0).list();
+                    for (Chat chat : chats) {
+                        String key = RedisConstants.CHAT_LIST_KEY + chat.getFromId();
+                        stringRedisTemplate.delete(key);
+                    }
+                }
+            });
+            return null;
+        }
         boolean save = save(group);
         if(save){
             Chat chat = new Chat();
             chat.setType(0);
             chat.setFromId(group.getCreateId());
             chat.setToId(group.getId());
-            Chat res = chatService.makeChat(chat, false);
-            ChatDTO chatDTO = BeanUtil.copyProperties(res, ChatDTO.class);
-            chatDTO.setToNickname(group.getName());
-            chatDTO.setToIcon(group.getIcon());
-            UserDTO userDTO = UserHolder.getUser();
-            chatDTO.setFromNickname(userDTO.getNickName());
-            chatDTO.setFromIcon(userDTO.getIcon());
-            return chatDTO;
+            return chatService.makeChat(chat, false);
         }
         return null;
     }
@@ -90,7 +98,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
             List<UserDTO> res = JSONObject.parseArray(s, UserDTO.class);
             return res;
         }
-        List<Chat> list = chatService.query().eq("to_id", id).eq("delete_flag", 0)
+        List<Chat> list = chatService.query().eq("type", 0).eq("to_id", id).eq("delete_flag", 0)
                 .orderByAsc("create_time").last("limit 0, 5").list();
         List<UserDTO> res = new LinkedList<>();
         for (Chat chat : list) {

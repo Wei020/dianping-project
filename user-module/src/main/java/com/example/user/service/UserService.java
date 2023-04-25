@@ -25,7 +25,7 @@ public interface UserService extends IService<User> {
 
     Result signCount();
 
-    Result logout(HttpServletRequest request);
+    Result logout(Long id, HttpServletRequest request);
 
     Result queryUserById(Long userId);
 
@@ -48,4 +48,6 @@ public interface UserService extends IService<User> {
     Boolean notFollowUser(Long id, Long followId);
 
     List<OptionsDTO> queryCity();
+
+    UserInfo queryUserInfoById(Long userId);
 }

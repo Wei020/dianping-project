@@ -2,6 +2,7 @@ package com.example.blog.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.blog.dto.FollowDTO;
 import com.example.blog.dto.Result;
@@ -11,6 +12,7 @@ import com.example.blog.mapper.FollowMapper;
 import com.example.blog.service.FollowService;
 import com.example.blog.utils.RabbitMQUtils;
 import com.example.blog.utils.RedisConstants;
+import com.example.blog.utils.SystemConstants;
 import com.example.blog.utils.UserHolder;
 import com.example.feign.clients.ChatClient;
 import com.example.feign.clients.UserClient;
@@ -119,15 +121,21 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
     }
 
     @Override
-    public List<UserDTO> queryFans() {
+    public List<UserDTO> queryFans(Integer current) {
         Long id = UserHolder.getUser().getId();
         String key = RedisConstants.USER_FANS_KEY + id;
         String s = stringRedisTemplate.opsForValue().get(key);
-        if(null != s){
+        if(null != s && current == 1){
             log.info(s);
             return JSONObject.parseArray(s, UserDTO.class);
         }
-        List<Follow> follows = query().eq("follow_user_id", id).list();
+        List<Follow> follows = query()
+                .eq("follow_user_id", id)
+                .page(new Page<Follow>(current, SystemConstants.MAX_PAGE_SIZE))
+                .getRecords();
+        if(follows == null || follows.size() == 0){
+            return null;
+        }
         List<UserDTO> res = new LinkedList<>();
         for (Follow follow : follows) {
             Object data = userClient.queryUserById(follow.getUserId()).getData();
@@ -138,7 +146,9 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
             UserDTO userDTO = JSONObject.parseObject(JSONObject.toJSONString(data), UserDTO.class);
             res.add(userDTO);
         }
-        stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(res), RedisConstants.EXPIRE_TIME);
+        if(current == 1){
+            stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(res), RedisConstants.EXPIRE_TIME);
+        }
         return res;
     }
 }

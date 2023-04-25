@@ -8,11 +8,11 @@ import java.util.List;
 
 public interface BlogCommentsService extends IService<BlogComment> {
 
-    List<CommentDTO> queryByBlogId(Long id);
+    List<CommentDTO> queryByBlogId(Long id, Boolean flag);
 
-    CommentDTO addComment(BlogComment blogComment);
+    CommentDTO addComment(CommentDTO commentDTO);
 
-    List<CommentDTO> queryMyComments();
+    List<CommentDTO> queryMyComments(Integer current);
 
     Boolean delComment(Long id);
 }

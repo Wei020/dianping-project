@@ -19,8 +19,8 @@ public class NoticeController {
     private NoticeService noticeService;
 
     @GetMapping("/queryNotice")
-    public Result queryNotice(@RequestParam("id") Long id){
-        List<NoticeDTO> res = noticeService.queryNotice(id);
+    public Result queryNotice(@RequestParam("id") Long id, @RequestParam("current") Integer current){
+        List<NoticeDTO> res = noticeService.queryNotice(id, current);
         log.info("查询通知结果:" + JSONObject.toJSONString(res));
         return Result.ok(res);
     }

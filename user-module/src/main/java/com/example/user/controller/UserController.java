@@ -43,9 +43,9 @@ public class UserController {
         return userService.findPassword(loginForm);
     }
 
-    @PostMapping("/logout")
-    public Result logout(HttpServletRequest request){
-        return userService.logout(request);
+    @PostMapping("/logout/{id}")
+    public Result logout(@PathVariable("id") Long id, HttpServletRequest request){
+        return userService.logout(id, request);
     }
 
     @GetMapping("/me")
@@ -65,6 +65,7 @@ public class UserController {
         return userService.queryUserById(userId);
     }
 
+
     @PostMapping("/sign")
     public Result sign(){
         return userService.sign();
@@ -81,7 +82,7 @@ public class UserController {
     }
 
     @PostMapping("/edit")
-    public Result editName(@RequestBody User user, HttpServletRequest request){
+    public Result editUser(@RequestBody User user, HttpServletRequest request){
         return userService.edit(user, request);
     }
 

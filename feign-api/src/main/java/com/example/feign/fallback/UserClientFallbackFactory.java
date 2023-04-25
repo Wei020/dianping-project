@@ -21,6 +21,11 @@ public class UserClientFallbackFactory implements FallbackFactory<UserClient> {
             }
 
             @Override
+            public Result queryUserInfoById(Long id) {
+                return null;
+            }
+
+            @Override
             public Result queryUserList(UserListDTO userListDTO) {
                 return null;
             }

@@ -24,7 +24,6 @@ public class BlogComment implements Serializable {
      * 主键
      */
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
@@ -61,6 +60,8 @@ public class BlogComment implements Serializable {
      */
     private Integer liked;
 
+    private Integer responds;
+
     /**
      * 状态，0：正常，1：被举报，2：禁止查看
      */
@@ -75,6 +76,8 @@ public class BlogComment implements Serializable {
      * 更新时间
      */
     private LocalDateTime updateTime;
+
+    private Integer deleteFlag;
 
 
 }
