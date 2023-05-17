@@ -52,11 +52,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private RabbitMQUtils rabbitMQUtils;
 
+    @Autowired
+    private SMSUtils smsUtils;
+
 //    @Autowired
 //    private ShopClient shopClient;
 
     @Autowired
     private SendMailService sendMailService;
+
+
 
     @Override
     public Result sendPhoneCode(String phone) {
@@ -74,8 +79,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         log.info("发送短信验证码成功，验证码:"+code);
         Map<String, String> param = new HashMap<>();
         param.put("code", code);
-//        Boolean isSuccess = SMSUtils.sendMsg(param, phone);
-        Boolean isSuccess = true;
+        Boolean isSuccess = smsUtils.sendMsg(param, phone);
+//        Boolean isSuccess = true;
         if(isSuccess){
             return Result.ok("验证码已发送！");
         }else {

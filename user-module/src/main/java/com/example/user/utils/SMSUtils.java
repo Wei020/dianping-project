@@ -7,6 +7,8 @@ import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.Map;
@@ -14,15 +16,20 @@ import java.util.Map;
 /**
  * 短信发送工具类
  */
+@Component
 public class SMSUtils {
 
+    @Value("${code.accessKeyId}")
+    private String accessKeyId;
 
-    public static Boolean sendMsg(Map<String, String> param, String phone){
+    @Value("${code.secret}")
+    private String secret;
+
+
+    public Boolean sendMsg(Map<String, String> param, String phone){
         if(StringUtils.isEmpty(phone)) return false;
-
-        DefaultProfile profile = DefaultProfile.getProfile("default", "LTAI5tMfxSL6RadN4R1KbEhA", "Evk2XpqZK1CY8usW4RZJqwXf4f0bpw");
+        DefaultProfile profile = DefaultProfile.getProfile("default", accessKeyId, secret);
         IAcsClient client = new DefaultAcsClient(profile);
-
         //这里不能修改
         CommonRequest request = new CommonRequest();
         //request.setProtocol(ProtocolType.HTTPS);
