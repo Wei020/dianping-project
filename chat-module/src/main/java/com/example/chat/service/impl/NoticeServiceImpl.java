@@ -18,6 +18,7 @@ import com.example.chat.service.NoticeService;
 import com.example.chat.utils.RedisConstants;
 import com.example.chat.utils.SystemConstants;
 import com.example.chat.utils.ThreadPool;
+import com.example.chat.utils.UserHolder;
 import com.example.feign.clients.UserClient;
 import com.example.feign.dto.Result;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +57,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
     public List<NoticeDTO> queryNotice(Long id, Integer current) {
         String key = RedisConstants.NOTICE_LIST_KEY + id;
         String s = stringRedisTemplate.opsForValue().get(key);
+        String readKey = RedisConstants.USER_ISREAD_KEY + id;
         if(null != s && current == 1){
             return JSONObject.parseArray(s, NoticeDTO.class);
         }
@@ -88,6 +90,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
         if(current == 1){
             stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(res));
         }
+        stringRedisTemplate.opsForValue().set(readKey, "0");
         return res;
     }
 
@@ -130,6 +133,7 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
     public void notice(NoticeDTO noticeDTO) {
         String key1 = RedisConstants.NOTICE_LIST_KEY + noticeDTO.getToId();
         String key2 = RedisConstants.NOTICE_LIST_KEY + noticeDTO.getFromId();
+        String readKey = RedisConstants.USER_ISREAD_KEY + noticeDTO.getToId();
         noticeDTO.setSendTime(LocalDateTime.now());
         Notice notice = BeanUtil.copyProperties(noticeDTO, Notice.class);
         log.info("存入的notice:" + notice.toString());
@@ -140,6 +144,18 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
             if(noticeDTO.getType() == 1 || noticeDTO.getType() == 0){
                 stringRedisTemplate.delete(key2);
             }
+            stringRedisTemplate.opsForValue().increment(readKey);
         }
+    }
+
+    @Override
+    public Integer queryNoticeNum() {
+        String key = RedisConstants.USER_ISREAD_KEY + UserHolder.getUser().getId();
+        String val = stringRedisTemplate.opsForValue().get(key);
+        if(val == null || val.isEmpty()){
+            return 0;
+        }
+        Integer num = Integer.parseInt(val);
+        return num;
     }
 }

@@ -95,7 +95,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         // 根据用户查询
         Page<Blog> page = query()
                 .eq("delete_flag", 0)
-                .orderByDesc("sort", "create_time")
+                .orderByDesc("sort", "update_time")
                 .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
         // 获取当前页数据
         List<Blog> records = page.getRecords();

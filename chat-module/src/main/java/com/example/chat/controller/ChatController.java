@@ -22,9 +22,11 @@ public class ChatController {
 
 
     @GetMapping("/queryRecords")
-    public Result queryRecords(@RequestParam("chatId") Long chatId){
-        List<Message> result = chatService.queryByChatId(chatId);
-        log.info("-----------------{}", result.toString());
+    public Result queryRecords(@RequestParam("chatId") Long chatId, @RequestParam("current") Integer current){
+        List<Message> result = chatService.queryByChatId(chatId, current);
+        if(result != null){
+            log.info("-----------------{}", result.toString());
+        }
         return Result.ok(result);
     }
 

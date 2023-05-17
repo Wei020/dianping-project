@@ -63,9 +63,9 @@ public class GroupController {
         return Result.ok();
     }
 
-    @PostMapping("/out/{id}")
-    public Result outGroup(@PathVariable("id") Long id){
-        Group group = groupService.outGroup(id);
+    @PostMapping("/out")
+    public Result outGroup(@RequestParam("id") Long id, @RequestParam("userId") Long userId){
+        Group group = groupService.outGroup(id, userId);
         return Result.ok(group);
     }
 

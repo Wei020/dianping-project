@@ -12,7 +12,7 @@ public interface ChatService extends IService<Chat> {
 
     List<ChatDTO> queryChats(Long id, Integer current);
 
-    List<Message> queryByChatId(Long chatId);
+    List<Message> queryByChatId(Long chatId, Integer current);
 
     ChatDTO makeChat(Chat chat, boolean flag);
 

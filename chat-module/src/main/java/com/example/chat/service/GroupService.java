@@ -19,7 +19,7 @@ public interface GroupService extends IService<Group> {
 
     void followGroup(Long id);
 
-    Group outGroup(Long id);
+    Group outGroup(Long id, Long userId);
 
     List<UserDTO> queryNumbers(Long id);
 

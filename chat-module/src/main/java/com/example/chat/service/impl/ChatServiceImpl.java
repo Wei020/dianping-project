@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -106,15 +107,28 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
     }
 
     @Override
-    public List<Message> queryByChatId(Long chatId) {
+    public List<Message> queryByChatId(Long chatId, Integer current) {
         Chat chat = getById(chatId);
         Integer type = chat.getType();
         List<Message> result;
         if(type == 0){
-            result = messageService.query().eq("to_id", chat.getToId()).list();
+            result = messageService.query()
+                    .eq("to_id", chat.getToId())
+                    .orderByDesc("send_time")
+                    .page(new Page<Message>(current, SystemConstants.CHAT_PAGE_SIZE))
+                    .getRecords();
+            if(result == null || result.size() == 0) {
+                return null;
+            }
         }else{
-            result = messageService.query().eq("chat_id", chatId).list();
+            result = messageService.query().eq("chat_id", chatId).orderByDesc("send_time")
+                    .page(new Page<Message>(current, SystemConstants.CHAT_PAGE_SIZE))
+                    .getRecords();
+            if(result == null || result.size() == 0) {
+                return null;
+            }
         }
+        Collections.reverse(result);
         return result;
     }
 

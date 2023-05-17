@@ -65,6 +65,8 @@ public class CommentDTO {
      */
     private Boolean status;
 
+    private Integer type;
+
     /**
      * 创建时间
      */

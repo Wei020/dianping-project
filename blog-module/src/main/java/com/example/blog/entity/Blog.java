@@ -80,6 +80,12 @@ public class Blog implements Serializable {
 
     private Integer sort;
 
+    /*
+    * 1:图文
+    * 2:视频
+    * */
+    private Integer type;
+
     /**
      * 创建时间
      */

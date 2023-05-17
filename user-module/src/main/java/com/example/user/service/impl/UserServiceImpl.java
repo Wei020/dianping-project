@@ -72,7 +72,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
 //        5、发送验证码
         log.info("发送短信验证码成功，验证码:"+code);
-        return Result.ok("验证码已发送！");
+        Map<String, String> param = new HashMap<>();
+        param.put("code", code);
+//        Boolean isSuccess = SMSUtils.sendMsg(param, phone);
+        Boolean isSuccess = true;
+        if(isSuccess){
+            return Result.ok("验证码已发送！");
+        }else {
+            return Result.fail("今日短信次数已用尽！");
+        }
     }
 
     @Override
@@ -123,7 +131,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }else{
             User user = query().eq("phone", phone).eq("password", pwd).one();
             if(user == null){
-                return Result.fail("密码错误！");
+                return Result.fail("手机号或密码错误！");
             }
             String s = (String) stringRedisTemplate.opsForHash().get(LOGIN_USER_ID, user.getId().toString());
             if(s != null){
@@ -316,6 +324,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Result edit(User user, HttpServletRequest request) {
+        if(user.getPwdN() != null && !user.getPwdN().isEmpty()){
+            if(user.getPwdO() == null || user.getPwdO().isEmpty()){
+                User one = query().eq("id", user.getId()).one();
+                if(one.getPassword() == null || one.getPassword().isEmpty()){
+                    user.setPassword(user.getPwdN());
+                }else {
+                    return Result.fail("原密码错误！");
+                }
+            }else {
+                User one = query().eq("id", user.getId()).eq("password", user.getPwdO()).one();
+                if(one == null){
+                    return Result.fail("原密码错误！");
+                }
+                user.setPassword(user.getPwdN());
+            }
+        }
         boolean update = updateById(user);
         tokenKey = request.getHeader("authorization");
         saveUserMsg(user, tokenKey);

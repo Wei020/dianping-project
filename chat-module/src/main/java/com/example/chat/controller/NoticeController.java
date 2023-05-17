@@ -37,4 +37,10 @@ public class NoticeController {
         noticeService.notice(noticeDTO);
         return Result.ok();
     }
+
+    @PostMapping("/num")
+    public Result queryNoticeNum(){
+        Integer num = noticeService.queryNoticeNum();
+        return Result.ok(num);
+    }
 }

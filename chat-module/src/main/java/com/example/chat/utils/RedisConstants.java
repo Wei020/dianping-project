@@ -14,6 +14,8 @@ public class RedisConstants {
 
     public static final String NOTICE_LIST_KEY = "notice:list:";
 
+    public static final String USER_ISREAD_KEY = "user:isread:";
+
     public static final Long CACHE_SHOP_TTL = 30L;
     public static final String CACHE_SHOP_KEY = "cache:shop:";
     public static final String CACHE_SHOP_LIST = "cache:shopList";

@@ -13,4 +13,6 @@ public interface NoticeService extends IService<Notice> {
     void doNotice(Long id, Integer flag);
 
     void notice(NoticeDTO noticeDTO);
+
+    Integer queryNoticeNum();
 }

@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
+
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)  //调用set方法后返回当前对象
@@ -25,6 +27,10 @@ public class Group {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long createId;
+
+    private LocalDateTime createTime;
+
+    private LocalDateTime updateTime;
 
     private Integer deleteFlag;
 }

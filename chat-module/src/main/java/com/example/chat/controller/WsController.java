@@ -52,7 +52,7 @@ public class WsController {
                 stringRedisTemplate.delete(key);
             }
         });
-        simpMessagingTemplate.convertAndSend("/topic/greetings",message);
+        simpMessagingTemplate.convertAndSend("/topic/greetings/" + message.getToId(), message);
     }
 
     @MessageMapping("/chat")
@@ -75,6 +75,6 @@ public class WsController {
                 stringRedisTemplate.delete(key2);
             }
         });
-        simpMessagingTemplate.convertAndSendToUser(message.getToId().toString(), "/chat", message);
+        simpMessagingTemplate.convertAndSendToUser(message.getToId().toString(), "/chat/" + message.getChatId(), message);
     }
 }

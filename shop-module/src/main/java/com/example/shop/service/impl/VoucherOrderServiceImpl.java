@@ -113,6 +113,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         Voucher voucher = voucherService.getById(voucherId);
         shopService.update().setSql("sold = sold + 1")
                 .eq("id", voucher.getShopId()).update();
+        String key = RedisConstants.USER_VOUCHER_LIST + userId;
+        stringRedisTemplate.delete(key);
 //        } finally {
 //            redisLock.unlock();
 //        }
@@ -155,7 +157,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         Date date = new Date();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
         String day = simpleDateFormat.format(date);
-        String dayKey = RedisConstants.VOUCHER_DAY_USERS + day;
+        String dayKey = RedisConstants.VOUCHER_DAY_USERS + voucherId + ":" + day;
         if(Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(dayKey, userId.toString()))) {
             return false;
         }

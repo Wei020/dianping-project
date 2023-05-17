@@ -79,7 +79,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
 
     @Override
     public List<Group> queryGroupByCondition(String condition) {
-        List<Group> res = query().like("name", condition).list();
+        List<Group> res = query().like("name", condition).eq("delete_flag", 0).list();
         return res;
     }
 
@@ -137,11 +137,10 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     }
 
     @Override
-    public Group outGroup(Long id) {
-        UserDTO user = UserHolder.getUser();
-        String chatKey = RedisConstants.CHAT_LIST_KEY + user.getId();
+    public Group outGroup(Long id, Long userId) {
+        String chatKey = RedisConstants.CHAT_LIST_KEY + userId;
         UpdateWrapper<Chat> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq("from_id", user.getId());
+        updateWrapper.eq("from_id", userId);
         updateWrapper.eq("to_id", id);
         updateWrapper.set("delete_flag", 1);
         chatService.update(updateWrapper);
