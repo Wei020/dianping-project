@@ -37,16 +37,14 @@ public class WsController {
     @MessageMapping("/hello")
     public void greeting(Message message){
         log.info("传入信息为:{}", message.toString());
-        if(message.getFromId() == null)
-            message.setFromId(0l);
+        if(message.getFromId() == null || message.getToId() == null)
+            return;
         message.setSendTime(LocalDateTime.now());
-        if(message.getToId() == null)
-            message.setToId(0l);
-        messageService.save(message);
         ThreadPoolExecutor poolExecutor = ThreadPool.poolExecutor;
         poolExecutor.execute(new Runnable() {
             @Override
             public void run() {
+                messageService.save(message);
                 chatService.update().eq("id", message.getChatId()).set("update_time", LocalDateTime.now()).update();
                 String key = RedisConstants.CHAT_LIST_KEY + message.getFromId();
                 stringRedisTemplate.delete(key);
@@ -58,16 +56,14 @@ public class WsController {
     @MessageMapping("/chat")
     public void chatting(Message message){
         log.info("信息为:" + message);
-        if(message.getFromId() == null)
-            message.setFromId(0l);
+        if(message.getFromId() == null || message.getToId() == null)
+            return;
         message.setSendTime(LocalDateTime.now());
-        if(message.getToId() == null)
-            message.setToId(0l);
-        messageService.save(message);
         ThreadPoolExecutor poolExecutor = ThreadPool.poolExecutor;
         poolExecutor.execute(new Runnable() {
             @Override
             public void run() {
+                messageService.save(message);
                 chatService.update().eq("id", message.getChatId()).set("update_time", LocalDateTime.now()).update();
                 String key1 = RedisConstants.CHAT_LIST_KEY + message.getFromId();
                 String key2 = RedisConstants.CHAT_LIST_KEY + message.getToId();

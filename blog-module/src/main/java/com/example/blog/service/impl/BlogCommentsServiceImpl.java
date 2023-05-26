@@ -150,7 +150,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             @Override
             public void run() {
                 BlogComment blogComment = getById(id);
-                blogService.update().setSql("sort = sort - 3").eq("id", blogComment.getBlogId()).update();
+                blogService.update().setSql("sort = sort - 3, comment = comment - 1").eq("id", blogComment.getBlogId()).update();
                 if(blogComment.getParentId() != 0){
                     update().setSql("responds = responds - 1").eq("id", blogComment.getParentId()).update();
                 }

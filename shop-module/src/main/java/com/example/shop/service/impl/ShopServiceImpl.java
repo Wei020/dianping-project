@@ -94,14 +94,14 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             }
         }
         log.info("islogin为:" + isLogin);
-//        判断是否需要根据坐标查询
         QueryWrapper<Shop> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("type_id", typeId);
-        if(isLogin){
+        if(isLogin && sortBy.equals("city")){
             queryWrapper.eq("area", userInfo.getCity());
+            queryWrapper.orderByDesc("score");
         }
         queryWrapper.like(!condition.isEmpty(), "name", condition);
-        queryWrapper.orderBy(!sortBy.isEmpty(), false, sortBy);
+        queryWrapper.orderBy(!sortBy.isEmpty() && !sortBy.equals("city"), false, sortBy);
         Page<Shop> page = new Page<>(current, SystemConstants.DEFAULT_PAGE_SIZE);
         List<Shop> records = shopMapper.selectPage(page, queryWrapper).getRecords();
 //        if(page.getRecords().isEmpty())

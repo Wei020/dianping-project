@@ -65,22 +65,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Result sendPhoneCode(String phone) {
-//        1、校验手机号
+//        校验手机号
         if(RegexUtils.isPhoneInvalid(phone)){
-            //        2、不符合返回错误信息
             return Result.fail("手机号格式错误");
         }
-//        3、符合，生成验证码
+//        符合，生成验证码
         String code = RandomUtil.randomNumbers(6);
-//        4、保存验证码到session
-//        session.setAttribute("code",code);
+//        保存验证码到redis
         stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
-//        5、发送验证码
+//        发送验证码
         log.info("发送短信验证码成功，验证码:"+code);
         Map<String, String> param = new HashMap<>();
         param.put("code", code);
         Boolean isSuccess = smsUtils.sendMsg(param, phone);
-//        Boolean isSuccess = true;
         if(isSuccess){
             return Result.ok("验证码已发送！");
         }else {
@@ -134,22 +131,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if(pwd == null || pwd.isEmpty()){
             return LoginByPhoneCode(loginForm, phone);
         }else{
-            User user = query().eq("phone", phone).eq("password", pwd).one();
+            User user = query().eq("phone", phone).one();
             if(user == null){
-                return Result.fail("手机号或密码错误！");
+                return Result.fail("用户不存在！");
             }
-            String s = (String) stringRedisTemplate.opsForHash().get(LOGIN_USER_ID, user.getId().toString());
-            if(s != null){
-                Long value = Long.valueOf(s);
-                Long now = System.currentTimeMillis();
-                if(now - value < 600000L){
-                    log.info(value + "-" + now);
-                    return Result.fail("已在其他客户端登录！");
-                }
+            String encodedPassword = user.getPassword();
+            if(PasswordEncoder.matches(encodedPassword, pwd)){
+                tokenKey = UUID.randomUUID().toString(true);
+                saveUserMsg(user, tokenKey);
+                return Result.ok(tokenKey);
+            }else {
+                return Result.fail("账号或密码错误！");
             }
-            tokenKey = UUID.randomUUID().toString(true);
-            saveUserMsg(user, tokenKey);
-            return Result.ok(tokenKey);
         }
     }
 
@@ -167,68 +160,56 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null) {
             //        6、不存在，创建新用户并保存
             user = createUserWithEmail(email);
-        }else {
-            String s = (String) stringRedisTemplate.opsForHash().get(LOGIN_USER_ID, user.getId().toString());
-            if(s != null){
-                Long value = Long.valueOf(s);
-                Long now = System.currentTimeMillis();
-                if(now - value < 600000L){
-                    return Result.fail("已在其他客户端登录！");
-                }
-            }
         }
+//        else {
+//            String s = (String) stringRedisTemplate.opsForHash().get(LOGIN_USER_ID, user.getId().toString());
+//            if(s != null){
+//                Long value = Long.valueOf(s);
+//                Long now = System.currentTimeMillis();
+//                if(now - value < 600000L){
+//                    return Result.fail("已在其他客户端登录！");
+//                }
+//            }
+//        }
 //        保存用户信息
-        //        7.1、随机生成token，作为登录令牌
+        //        随机生成token，作为登录令牌
         tokenKey = UUID.randomUUID().toString(true);
         saveUserMsg(user, tokenKey);
         return Result.ok(tokenKey);
     }
 
     private Result LoginByPhoneCode(LoginFormDTO loginForm, String phone) {
-        //        2、校验验证码
+        //        校验验证码
         Object cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
         String code = loginForm.getCode();
         if(cacheCode == null || !cacheCode.toString().equals(code)){
-            //        3、不一致，报错
             return Result.fail("验证码错误！");
         }
-//        4、一致，根据手机号查询用户
+//        一致，根据手机号查询用户
         User user = query().eq("phone", phone).one();
-//        5、判断用户是否存在
+//        4、判断用户是否存在
         if (user == null) {
-            //        6、不存在，创建新用户并保存
+            //        不存在，创建新用户并保存
             user = createUserWithPhone(phone);
-        }else {
-            String s = (String) stringRedisTemplate.opsForHash().get(LOGIN_USER_ID, user.getId().toString());
-            if(s != null){
-                Long value = Long.valueOf(s);
-                Long now = System.currentTimeMillis();
-                if(now - value < 600000L){
-                    return Result.fail("已在其他客户端登录！");
-                }
-            }
         }
-//        保存用户信息
-        //        7.1、随机生成token，作为登录令牌
+//        保存用户信息  随机生成token，作为登录令牌
         tokenKey = UUID.randomUUID().toString(true);
         saveUserMsg(user, tokenKey);
         return Result.ok(tokenKey);
     }
 
     private void saveUserMsg(User user, String tokenKey) {
-        //        7、保存用户信息到redis中
-//        7.2、将user对象转为hash存储
+        //        保存用户信息到redis中
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
-//        session.setAttribute("user", BeanUtil.copyProperties(user, UserDTO.class));
         Map<String, Object> userMap = BeanUtil.beanToMap(userDTO, new HashMap<>(),
                     CopyOptions.create().setIgnoreNullValue(true).setFieldValueEditor(
                             (fieldName, fieldValue) -> fieldValue.toString()
                     )
                 );
-//        7.3、存储
+//        存储
         stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + tokenKey,userMap);
-//        7.4、设置token有效期
-        stringRedisTemplate.opsForHash().put(LOGIN_USER_ID, user.getId().toString(), String.valueOf(System.currentTimeMillis()));
+//        设置token有效期
+//        stringRedisTemplate.opsForHash().put(LOGIN_USER_ID, user.getId().toString(), String.valueOf(System.currentTimeMillis()));
         stringRedisTemplate.expire(LOGIN_USER_KEY + tokenKey, LOGIN_USER_TTL, TimeUnit.SECONDS);
     }
 
@@ -329,20 +310,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Result edit(User user, HttpServletRequest request) {
+        String encodedPassword = PasswordEncoder.encode(user.getPwdN());
         if(user.getPwdN() != null && !user.getPwdN().isEmpty()){
             if(user.getPwdO() == null || user.getPwdO().isEmpty()){
                 User one = query().eq("id", user.getId()).one();
                 if(one.getPassword() == null || one.getPassword().isEmpty()){
-                    user.setPassword(user.getPwdN());
+                    user.setPassword(encodedPassword);
                 }else {
                     return Result.fail("原密码错误！");
                 }
             }else {
-                User one = query().eq("id", user.getId()).eq("password", user.getPwdO()).one();
-                if(one == null){
+                User one = query().eq("id", user.getId()).one();
+                if(one == null || !PasswordEncoder.matches(one.getPassword(), user.getPwdO())){
                     return Result.fail("原密码错误！");
                 }
-                user.setPassword(user.getPwdN());
+                user.setPassword(encodedPassword);
             }
         }
         boolean update = updateById(user);
@@ -380,10 +362,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return Result.fail("验证码错误！");
         }
         boolean update = false;
+        String encodedPassword = PasswordEncoder.encode(password);
         if(phone != null)
-            update = update().set("password", password).eq("phone", phone).update();
+            update = update().set("password", encodedPassword).eq("phone", phone).update();
         else
-            update = update().set("password", password).eq("email", email).update();
+            update = update().set("password", encodedPassword).eq("email", email).update();
         return Result.ok(update);
     }
 
